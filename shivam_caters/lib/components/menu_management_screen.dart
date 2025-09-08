@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shivam_caters/components/add_dish_screen.dart';
+import 'package:shivam_caters/components/test_mendu.dart';
+import 'package:shivam_caters/database/app_database.dart';
+import 'package:shivam_caters/database/db_instance.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   const MenuManagementScreen({super.key});
@@ -105,16 +109,55 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
           ),
           
           // Menu Items List
+          // Expanded(
+          //   child: ListView.builder(
+          //     padding: const EdgeInsets.all(16),
+          //     itemCount: _getFilteredMenuItems().length,
+          //     itemBuilder: (context, index) {
+          //       final item = _getFilteredMenuItems()[index];
+          //     
+          //       // return _buildMenuItemCard(item);
+          //     },
+          //   ),
+          // ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _getFilteredMenuItems().length,
-              itemBuilder: (context, index) {
-                final item = _getFilteredMenuItems()[index];
-                return _buildMenuItemCard(item);
-              },
-            ),
-          ),
+  child: StreamBuilder<List<Dishe>>(
+    stream: db.select(db.dishes).watch(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      var dishes = snapshot.data!;
+
+      // Apply category filter
+      if (_selectedCategory != 'All') {
+        dishes = dishes.where((d) => d.category == _selectedCategory).toList();
+      }
+
+      if (dishes.isEmpty) {
+        return const Center(child: Text("No dishes found in this category."));
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: dishes.length,
+        itemBuilder: (context, index) {
+          final dish = dishes[index];
+          return _buildMenuItemCard({
+            'id': dish.id.toString(),
+            'name': dish.name,
+            'category': dish.category ?? 'Uncategorized',
+            'price': dish.price,
+            'description': dish.portionSize ?? 'No description',
+            'available': true, 
+            'prepTime': '15 mins', // you can add a field for this too
+          });
+        },
+      );
+    },
+  ),
+),
+
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -262,7 +305,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> AddDishScreen())),
             child: const Text('Add Item'),
           ),
         ],

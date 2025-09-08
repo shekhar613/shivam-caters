@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'components/splash_screen.dart';
 
-void main() {
+void main() async {
+
+  await WidgetsFlutterBinding.ensureInitialized();
   runApp(const ShivamCatersApp());
 }
 
