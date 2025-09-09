@@ -13,6 +13,8 @@ class Dishes extends Table {
   TextColumn get category => text().nullable()();
   RealColumn get price => real()();
   TextColumn get portionSize => text().nullable()();
+  TextColumn get prepTime => text().nullable()();
+  BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
 }
 
 // You can add more: Customers, Orders, OrderItems, Stock etc.
@@ -29,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
 // Open connection
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationSupportDirectory();
+    final dbFolder = await getApplicationSupportDirectory(); 
     final file = File(p.join(dbFolder.path, 'catering.sqlite'));
     return NativeDatabase.createInBackground(file);
   });

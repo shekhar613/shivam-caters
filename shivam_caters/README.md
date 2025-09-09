@@ -76,5 +76,9 @@ To build a Windows executable:
 ```bash
 flutter build windows
 ```
+To reconfigure and build app_database.g.dart file
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
 
 The built application will be available in `build/windows/runner/Release/`.

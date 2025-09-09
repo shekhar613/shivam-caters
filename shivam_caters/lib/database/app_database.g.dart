@@ -61,6 +61,32 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _prepTimeMeta = const VerificationMeta(
+    'prepTime',
+  );
+  @override
+  late final GeneratedColumn<String> prepTime = GeneratedColumn<String>(
+    'prep_time',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isAvailableMeta = const VerificationMeta(
+    'isAvailable',
+  );
+  @override
+  late final GeneratedColumn<bool> isAvailable = GeneratedColumn<bool>(
+    'is_available',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_available" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -68,6 +94,8 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
     category,
     price,
     portionSize,
+    prepTime,
+    isAvailable,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -115,6 +143,21 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
         ),
       );
     }
+    if (data.containsKey('prep_time')) {
+      context.handle(
+        _prepTimeMeta,
+        prepTime.isAcceptableOrUnknown(data['prep_time']!, _prepTimeMeta),
+      );
+    }
+    if (data.containsKey('is_available')) {
+      context.handle(
+        _isAvailableMeta,
+        isAvailable.isAcceptableOrUnknown(
+          data['is_available']!,
+          _isAvailableMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -144,6 +187,14 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
         DriftSqlType.string,
         data['${effectivePrefix}portion_size'],
       ),
+      prepTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}prep_time'],
+      ),
+      isAvailable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_available'],
+      )!,
     );
   }
 
@@ -159,12 +210,16 @@ class Dishe extends DataClass implements Insertable<Dishe> {
   final String? category;
   final double price;
   final String? portionSize;
+  final String? prepTime;
+  final bool isAvailable;
   const Dishe({
     required this.id,
     required this.name,
     this.category,
     required this.price,
     this.portionSize,
+    this.prepTime,
+    required this.isAvailable,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -178,6 +233,10 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     if (!nullToAbsent || portionSize != null) {
       map['portion_size'] = Variable<String>(portionSize);
     }
+    if (!nullToAbsent || prepTime != null) {
+      map['prep_time'] = Variable<String>(prepTime);
+    }
+    map['is_available'] = Variable<bool>(isAvailable);
     return map;
   }
 
@@ -192,6 +251,10 @@ class Dishe extends DataClass implements Insertable<Dishe> {
       portionSize: portionSize == null && nullToAbsent
           ? const Value.absent()
           : Value(portionSize),
+      prepTime: prepTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prepTime),
+      isAvailable: Value(isAvailable),
     );
   }
 
@@ -206,6 +269,8 @@ class Dishe extends DataClass implements Insertable<Dishe> {
       category: serializer.fromJson<String?>(json['category']),
       price: serializer.fromJson<double>(json['price']),
       portionSize: serializer.fromJson<String?>(json['portionSize']),
+      prepTime: serializer.fromJson<String?>(json['prepTime']),
+      isAvailable: serializer.fromJson<bool>(json['isAvailable']),
     );
   }
   @override
@@ -217,6 +282,8 @@ class Dishe extends DataClass implements Insertable<Dishe> {
       'category': serializer.toJson<String?>(category),
       'price': serializer.toJson<double>(price),
       'portionSize': serializer.toJson<String?>(portionSize),
+      'prepTime': serializer.toJson<String?>(prepTime),
+      'isAvailable': serializer.toJson<bool>(isAvailable),
     };
   }
 
@@ -226,12 +293,16 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     Value<String?> category = const Value.absent(),
     double? price,
     Value<String?> portionSize = const Value.absent(),
+    Value<String?> prepTime = const Value.absent(),
+    bool? isAvailable,
   }) => Dishe(
     id: id ?? this.id,
     name: name ?? this.name,
     category: category.present ? category.value : this.category,
     price: price ?? this.price,
     portionSize: portionSize.present ? portionSize.value : this.portionSize,
+    prepTime: prepTime.present ? prepTime.value : this.prepTime,
+    isAvailable: isAvailable ?? this.isAvailable,
   );
   Dishe copyWithCompanion(DishesCompanion data) {
     return Dishe(
@@ -242,6 +313,10 @@ class Dishe extends DataClass implements Insertable<Dishe> {
       portionSize: data.portionSize.present
           ? data.portionSize.value
           : this.portionSize,
+      prepTime: data.prepTime.present ? data.prepTime.value : this.prepTime,
+      isAvailable: data.isAvailable.present
+          ? data.isAvailable.value
+          : this.isAvailable,
     );
   }
 
@@ -252,13 +327,23 @@ class Dishe extends DataClass implements Insertable<Dishe> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('price: $price, ')
-          ..write('portionSize: $portionSize')
+          ..write('portionSize: $portionSize, ')
+          ..write('prepTime: $prepTime, ')
+          ..write('isAvailable: $isAvailable')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, category, price, portionSize);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    category,
+    price,
+    portionSize,
+    prepTime,
+    isAvailable,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -267,7 +352,9 @@ class Dishe extends DataClass implements Insertable<Dishe> {
           other.name == this.name &&
           other.category == this.category &&
           other.price == this.price &&
-          other.portionSize == this.portionSize);
+          other.portionSize == this.portionSize &&
+          other.prepTime == this.prepTime &&
+          other.isAvailable == this.isAvailable);
 }
 
 class DishesCompanion extends UpdateCompanion<Dishe> {
@@ -276,12 +363,16 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
   final Value<String?> category;
   final Value<double> price;
   final Value<String?> portionSize;
+  final Value<String?> prepTime;
+  final Value<bool> isAvailable;
   const DishesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.category = const Value.absent(),
     this.price = const Value.absent(),
     this.portionSize = const Value.absent(),
+    this.prepTime = const Value.absent(),
+    this.isAvailable = const Value.absent(),
   });
   DishesCompanion.insert({
     this.id = const Value.absent(),
@@ -289,6 +380,8 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     this.category = const Value.absent(),
     required double price,
     this.portionSize = const Value.absent(),
+    this.prepTime = const Value.absent(),
+    this.isAvailable = const Value.absent(),
   }) : name = Value(name),
        price = Value(price);
   static Insertable<Dishe> custom({
@@ -297,6 +390,8 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     Expression<String>? category,
     Expression<double>? price,
     Expression<String>? portionSize,
+    Expression<String>? prepTime,
+    Expression<bool>? isAvailable,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -304,6 +399,8 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
       if (category != null) 'category': category,
       if (price != null) 'price': price,
       if (portionSize != null) 'portion_size': portionSize,
+      if (prepTime != null) 'prep_time': prepTime,
+      if (isAvailable != null) 'is_available': isAvailable,
     });
   }
 
@@ -313,6 +410,8 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     Value<String?>? category,
     Value<double>? price,
     Value<String?>? portionSize,
+    Value<String?>? prepTime,
+    Value<bool>? isAvailable,
   }) {
     return DishesCompanion(
       id: id ?? this.id,
@@ -320,6 +419,8 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
       category: category ?? this.category,
       price: price ?? this.price,
       portionSize: portionSize ?? this.portionSize,
+      prepTime: prepTime ?? this.prepTime,
+      isAvailable: isAvailable ?? this.isAvailable,
     );
   }
 
@@ -341,6 +442,12 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     if (portionSize.present) {
       map['portion_size'] = Variable<String>(portionSize.value);
     }
+    if (prepTime.present) {
+      map['prep_time'] = Variable<String>(prepTime.value);
+    }
+    if (isAvailable.present) {
+      map['is_available'] = Variable<bool>(isAvailable.value);
+    }
     return map;
   }
 
@@ -351,7 +458,9 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('price: $price, ')
-          ..write('portionSize: $portionSize')
+          ..write('portionSize: $portionSize, ')
+          ..write('prepTime: $prepTime, ')
+          ..write('isAvailable: $isAvailable')
           ..write(')'))
         .toString();
   }
@@ -375,6 +484,8 @@ typedef $$DishesTableCreateCompanionBuilder =
       Value<String?> category,
       required double price,
       Value<String?> portionSize,
+      Value<String?> prepTime,
+      Value<bool> isAvailable,
     });
 typedef $$DishesTableUpdateCompanionBuilder =
     DishesCompanion Function({
@@ -383,6 +494,8 @@ typedef $$DishesTableUpdateCompanionBuilder =
       Value<String?> category,
       Value<double> price,
       Value<String?> portionSize,
+      Value<String?> prepTime,
+      Value<bool> isAvailable,
     });
 
 class $$DishesTableFilterComposer
@@ -416,6 +529,16 @@ class $$DishesTableFilterComposer
 
   ColumnFilters<String> get portionSize => $composableBuilder(
     column: $table.portionSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get prepTime => $composableBuilder(
+    column: $table.prepTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -453,6 +576,16 @@ class $$DishesTableOrderingComposer
     column: $table.portionSize,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get prepTime => $composableBuilder(
+    column: $table.prepTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DishesTableAnnotationComposer
@@ -478,6 +611,14 @@ class $$DishesTableAnnotationComposer
 
   GeneratedColumn<String> get portionSize => $composableBuilder(
     column: $table.portionSize,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get prepTime =>
+      $composableBuilder(column: $table.prepTime, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
     builder: (column) => column,
   );
 }
@@ -515,12 +656,16 @@ class $$DishesTableTableManager
                 Value<String?> category = const Value.absent(),
                 Value<double> price = const Value.absent(),
                 Value<String?> portionSize = const Value.absent(),
+                Value<String?> prepTime = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
               }) => DishesCompanion(
                 id: id,
                 name: name,
                 category: category,
                 price: price,
                 portionSize: portionSize,
+                prepTime: prepTime,
+                isAvailable: isAvailable,
               ),
           createCompanionCallback:
               ({
@@ -529,12 +674,16 @@ class $$DishesTableTableManager
                 Value<String?> category = const Value.absent(),
                 required double price,
                 Value<String?> portionSize = const Value.absent(),
+                Value<String?> prepTime = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
               }) => DishesCompanion.insert(
                 id: id,
                 name: name,
                 category: category,
                 price: price,
                 portionSize: portionSize,
+                prepTime: prepTime,
+                isAvailable: isAvailable,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

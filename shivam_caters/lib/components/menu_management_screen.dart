@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shivam_caters/components/add_dish_screen.dart';
-import 'package:shivam_caters/components/test_mendu.dart';
 import 'package:shivam_caters/database/app_database.dart';
 import 'package:shivam_caters/database/db_instance.dart';
+import 'package:shivam_caters/utils/db_functions.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   const MenuManagementScreen({super.key});
@@ -14,7 +14,7 @@ class MenuManagementScreen extends StatefulWidget {
 class _MenuManagementScreenState extends State<MenuManagementScreen> {
   String _selectedCategory = 'All';
   final List<String> _categories = ['All', 'Appetizers', 'Main Course', 'Breads', 'Desserts'];
-
+DbFunctions dbf = DbFunctions();
   // Sample menu data
   final List<Map<String, dynamic>> _menuItems = [
     {
@@ -150,7 +150,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             'price': dish.price,
             'description': dish.portionSize ?? 'No description',
             'available': true, 
-            'prepTime': '15 mins', // you can add a field for this too
+            'prepTime': dish.prepTime, // you can add a field for this too
           });
         },
       );
@@ -273,7 +273,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                       icon: const Icon(Icons.edit, color: Color(0xFF8A8AFF)),
                     ),
                     IconButton(
-                      onPressed: () => _toggleAvailability(item),
+                      onPressed: () => {},
                       icon: Icon(
                         item['available'] ? Icons.visibility_off : Icons.visibility,
                         color: item['available'] ? Colors.orange : Colors.green,
@@ -305,7 +305,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> AddDishScreen())),
+            onPressed: () => {
+              Navigator.pop(context),
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> AddDishScreen()))},
             child: const Text('Add Item'),
           ),
         ],
@@ -333,17 +335,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     );
   }
 
-  void _toggleAvailability(Map<String, dynamic> item) {
-    setState(() {
-      item['available'] = !item['available'];
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${item['name']} ${item['available'] ? 'made available' : 'made unavailable'}'),
-        backgroundColor: const Color(0xFF8A8AFF),
-      ),
-    );
-  }
+  
 
   void _deleteMenuItem(Map<String, dynamic> item) {
     showDialog(
