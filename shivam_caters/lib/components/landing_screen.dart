@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'navigation_helper.dart';
+// import 'navigation_helper.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -97,7 +97,8 @@ class LandingScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
-                          onTap: () => NavigationHelper.navigateToMenu(context),
+                          onTap: () => {},
+                          // NavigationHelper.navigateToMenu(context),
                           child: _buildActionButton(
                             'View Menu',
                             Icons.restaurant_menu,
@@ -107,7 +108,8 @@ class LandingScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 20),
                         GestureDetector(
-                          onTap: () => NavigationHelper.navigateToContact(context),
+                          onTap: () => {},
+                          //  NavigationHelper.navigateToContact(context),
                           child: _buildActionButton(
                             'Contact Us',
                             Icons.phone,
@@ -229,7 +231,8 @@ class LandingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   GestureDetector(
-                    onTap: () => NavigationHelper.navigateToContact(context),
+                    onTap: () => {},
+                    // NavigationHelper.navigateToContact(context),
                     child: _buildActionButton(
                       'Get Quote Now',
                       Icons.arrow_forward,
