@@ -51,10 +51,14 @@ class _AddDishScreenState extends State<AddDishScreen> {
 
       try {
         final dish = DishesCompanion(
+          
           name: Value(_nameController.text.trim()),
           category: Value(_selectedCategory),
           price: Value(double.tryParse(_priceController.text.trim()) ?? 0),
           portionSize: Value(_portionController.text.trim()),
+          prepTime:  Value(_prepTimeController.text.trim()),
+          description: Value(_descriptionController.text.trim()),
+          isAvailable: Value(_isAvailable),
         );
 
         await db.into(db.dishes).insert(dish);
@@ -206,7 +210,7 @@ class _AddDishScreenState extends State<AddDishScreen> {
                           controller: _priceController,
                           label: "Price (₹)",
                           hint: "Enter price",
-                          icon: Icons.attach_money,
+                          icon: Icons.currency_rupee_outlined,
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {

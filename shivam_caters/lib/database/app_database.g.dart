@@ -30,6 +30,17 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _categoryMeta = const VerificationMeta(
     'category',
   );
@@ -91,6 +102,7 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    description,
     category,
     price,
     portionSize,
@@ -119,6 +131,15 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
     }
     if (data.containsKey('category')) {
       context.handle(
@@ -175,6 +196,10 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
       category: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}category'],
@@ -207,6 +232,7 @@ class $DishesTable extends Dishes with TableInfo<$DishesTable, Dishe> {
 class Dishe extends DataClass implements Insertable<Dishe> {
   final int id;
   final String name;
+  final String? description;
   final String? category;
   final double price;
   final String? portionSize;
@@ -215,6 +241,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
   const Dishe({
     required this.id,
     required this.name,
+    this.description,
     this.category,
     required this.price,
     this.portionSize,
@@ -226,6 +253,9 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     if (!nullToAbsent || category != null) {
       map['category'] = Variable<String>(category);
     }
@@ -244,6 +274,9 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     return DishesCompanion(
       id: Value(id),
       name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       category: category == null && nullToAbsent
           ? const Value.absent()
           : Value(category),
@@ -266,6 +299,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     return Dishe(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
       category: serializer.fromJson<String?>(json['category']),
       price: serializer.fromJson<double>(json['price']),
       portionSize: serializer.fromJson<String?>(json['portionSize']),
@@ -279,6 +313,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
       'category': serializer.toJson<String?>(category),
       'price': serializer.toJson<double>(price),
       'portionSize': serializer.toJson<String?>(portionSize),
@@ -290,6 +325,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
   Dishe copyWith({
     int? id,
     String? name,
+    Value<String?> description = const Value.absent(),
     Value<String?> category = const Value.absent(),
     double? price,
     Value<String?> portionSize = const Value.absent(),
@@ -298,6 +334,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
   }) => Dishe(
     id: id ?? this.id,
     name: name ?? this.name,
+    description: description.present ? description.value : this.description,
     category: category.present ? category.value : this.category,
     price: price ?? this.price,
     portionSize: portionSize.present ? portionSize.value : this.portionSize,
@@ -308,6 +345,9 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     return Dishe(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       category: data.category.present ? data.category.value : this.category,
       price: data.price.present ? data.price.value : this.price,
       portionSize: data.portionSize.present
@@ -325,6 +365,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
     return (StringBuffer('Dishe(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
           ..write('category: $category, ')
           ..write('price: $price, ')
           ..write('portionSize: $portionSize, ')
@@ -338,6 +379,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
   int get hashCode => Object.hash(
     id,
     name,
+    description,
     category,
     price,
     portionSize,
@@ -350,6 +392,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
       (other is Dishe &&
           other.id == this.id &&
           other.name == this.name &&
+          other.description == this.description &&
           other.category == this.category &&
           other.price == this.price &&
           other.portionSize == this.portionSize &&
@@ -360,6 +403,7 @@ class Dishe extends DataClass implements Insertable<Dishe> {
 class DishesCompanion extends UpdateCompanion<Dishe> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String?> description;
   final Value<String?> category;
   final Value<double> price;
   final Value<String?> portionSize;
@@ -368,6 +412,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
   const DishesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.description = const Value.absent(),
     this.category = const Value.absent(),
     this.price = const Value.absent(),
     this.portionSize = const Value.absent(),
@@ -377,6 +422,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
   DishesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.description = const Value.absent(),
     this.category = const Value.absent(),
     required double price,
     this.portionSize = const Value.absent(),
@@ -387,6 +433,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
   static Insertable<Dishe> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? description,
     Expression<String>? category,
     Expression<double>? price,
     Expression<String>? portionSize,
@@ -396,6 +443,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (description != null) 'description': description,
       if (category != null) 'category': category,
       if (price != null) 'price': price,
       if (portionSize != null) 'portion_size': portionSize,
@@ -407,6 +455,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
   DishesCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<String?>? description,
     Value<String?>? category,
     Value<double>? price,
     Value<String?>? portionSize,
@@ -416,6 +465,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     return DishesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      description: description ?? this.description,
       category: category ?? this.category,
       price: price ?? this.price,
       portionSize: portionSize ?? this.portionSize,
@@ -432,6 +482,9 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (category.present) {
       map['category'] = Variable<String>(category.value);
@@ -456,6 +509,7 @@ class DishesCompanion extends UpdateCompanion<Dishe> {
     return (StringBuffer('DishesCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
           ..write('category: $category, ')
           ..write('price: $price, ')
           ..write('portionSize: $portionSize, ')
@@ -481,6 +535,7 @@ typedef $$DishesTableCreateCompanionBuilder =
     DishesCompanion Function({
       Value<int> id,
       required String name,
+      Value<String?> description,
       Value<String?> category,
       required double price,
       Value<String?> portionSize,
@@ -491,6 +546,7 @@ typedef $$DishesTableUpdateCompanionBuilder =
     DishesCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<String?> description,
       Value<String?> category,
       Value<double> price,
       Value<String?> portionSize,
@@ -514,6 +570,11 @@ class $$DishesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -562,6 +623,11 @@ class $$DishesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get category => $composableBuilder(
     column: $table.category,
     builder: (column) => ColumnOrderings(column),
@@ -602,6 +668,11 @@ class $$DishesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
@@ -653,6 +724,7 @@ class $$DishesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 Value<double> price = const Value.absent(),
                 Value<String?> portionSize = const Value.absent(),
@@ -661,6 +733,7 @@ class $$DishesTableTableManager
               }) => DishesCompanion(
                 id: id,
                 name: name,
+                description: description,
                 category: category,
                 price: price,
                 portionSize: portionSize,
@@ -671,6 +744,7 @@ class $$DishesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<String?> description = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 required double price,
                 Value<String?> portionSize = const Value.absent(),
@@ -679,6 +753,7 @@ class $$DishesTableTableManager
               }) => DishesCompanion.insert(
                 id: id,
                 name: name,
+                description: description,
                 category: category,
                 price: price,
                 portionSize: portionSize,

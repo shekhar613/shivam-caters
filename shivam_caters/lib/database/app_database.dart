@@ -10,14 +10,13 @@ part 'app_database.g.dart';
 class Dishes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
   TextColumn get category => text().nullable()();
   RealColumn get price => real()();
   TextColumn get portionSize => text().nullable()();
   TextColumn get prepTime => text().nullable()();
   BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
 }
-
-// You can add more: Customers, Orders, OrderItems, Stock etc.
 
 // Main database class
 @DriftDatabase(tables: [Dishes])
@@ -26,12 +25,35 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  // ✅ Watch dishes with optional category filter
+  Stream<List<Dishe>> watchDishes({String? category}) {
+    if (category == null || category == 'All') {
+      return (select(dishes)).watch();
+    } else {
+      return (select(dishes)..where((tbl) => tbl.category.equals(category))).watch();
+    }
+  }
+
+  // ✅ Insert new dish
+  Future<int> insertDish(DishesCompanion dish) => into(dishes).insert(dish);
+
+  // ✅ Update availability
+  Future updateAvailability(int id, bool available) {
+    return (update(dishes)..where((t) => t.id.equals(id)))
+        .write(DishesCompanion(isAvailable: Value(available)));
+  }
+
+  // ✅ Delete dish
+  Future deleteDish(int id) {
+    return (delete(dishes)..where((t) => t.id.equals(id))).go();
+  }
 }
 
 // Open connection
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationSupportDirectory(); 
+    final dbFolder = await getApplicationSupportDirectory();
     final file = File(p.join(dbFolder.path, 'catering.sqlite'));
     return NativeDatabase.createInBackground(file);
   });

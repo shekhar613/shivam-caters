@@ -13,49 +13,18 @@ class MenuManagementScreen extends StatefulWidget {
 
 class _MenuManagementScreenState extends State<MenuManagementScreen> {
   String _selectedCategory = 'All';
-  final List<String> _categories = ['All', 'Appetizers', 'Main Course', 'Breads', 'Desserts'];
+  final List<String> _categories = ['Appetizers',
+    'Main Course',
+    'Breads',
+    'Desserts',
+    'Beverages',
+    'Salads',
+    'Soups',
+    'Snacks'];
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  // Sample menu data
-  final List<Map<String, dynamic>> _menuItems = [
-    {
-      'id': 'MENU-001',
-      'name': 'Samosa',
-      'category': 'Appetizers',
-      'price': 15,
-      'description': 'Crispy fried pastry with spiced potato filling',
-      'available': true,
-      'prepTime': '15 mins',
-    },
-    {
-      'id': 'MENU-002',
-      'name': 'Butter Chicken',
-      'category': 'Main Course',
-      'price': 200,
-      'description': 'Tender chicken in rich tomato and cream sauce',
-      'available': true,
-      'prepTime': '30 mins',
-    },
-    {
-      'id': 'MENU-003',
-      'name': 'Naan',
-      'category': 'Breads',
-      'price': 25,
-      'description': 'Soft leavened flatbread baked in tandoor',
-      'available': true,
-      'prepTime': '10 mins',
-    },
-    {
-      'id': 'MENU-004',
-      'name': 'Gulab Jamun',
-      'category': 'Desserts',
-      'price': 15,
-      'description': 'Soft milk dumplings in sugar syrup',
-      'available': false,
-      'prepTime': '20 mins',
-    },
-  ];
+  DbFunctions dbf = DbFunctions(db);
 
   @override
   void dispose() {
@@ -194,34 +163,55 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                 ),
                 const SizedBox(height: 8),
                 // Results Count
+                StreamBuilder<List<Dishe>>(
+  stream: db.watchDishes(category: _selectedCategory), // already filtered
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (!snapshot.hasData) {
+      return const Center(child: Text("No data available"));
+    }
+
+    var dishes = snapshot.data!;
+
+    // Apply search filter if needed
+    if (_searchQuery.isNotEmpty) {
+      dishes = dishes
+          .where((d) => d.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
+    } return
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Showing ${_getFilteredMenuItems().length} menu items',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
-                      TextButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _searchQuery = '';
-                            _selectedCategory = 'All';
-                          });
-                        },
-                        icon: const Icon(Icons.clear_all, size: 16),
-                        label: const Text('Clear All'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF8A8AFF),
-                        ),
-                      ),
-                  ],
-                ),
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      'Showing ${dishes.length} menu items',
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[600],
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
+      TextButton.icon(
+        onPressed: () {
+          setState(() {
+            _searchController.clear();
+            _searchQuery = '';
+            _selectedCategory = 'All';
+          });
+        },
+        icon: const Icon(Icons.clear_all, size: 16),
+        label: const Text('Clear All'),
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF8A8AFF),
+        ),
+      ),
+  ],
+);
+
+                }              ),
+  
               ],
             ),
           ),
@@ -387,10 +377,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                   'id': dish.id.toString(),
                                   'name': dish.name,
                                   'category': dish.category ?? 'Uncategorized',
+                                  'portionsize': dish.portionSize,
                                   'price': dish.price,
-                                  'description': dish.portionSize ?? 'No description',
+                                  'description': dish.description,
                                   'available': true, // You can add availability field to database
-                                  'prepTime': '15 mins', // You can add prep time field to database
+                                  'prepTime': dish.prepTime, // You can add prep time field to database
                                 };
                                 
                                 return DataRow(
@@ -467,15 +458,15 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                               : const Color(0xFFF44336).withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: (item['available'] as bool) 
+                                            color: dish.isAvailable
                                                 ? const Color(0xFF4CAF50)
                                                 : const Color(0xFFF44336),
                                           ),
                                         ),
                                         child: Text(
-                                          (item['available'] as bool) ? 'Available' : 'Unavailable',
+                                          dish.isAvailable ? 'Available' : 'Unavailable',
                                           style: TextStyle(
-                                            color: (item['available'] as bool) 
+                                            color: dish.isAvailable 
                                                 ? const Color(0xFF4CAF50)
                                                 : const Color(0xFFF44336),
                                             fontWeight: FontWeight.bold,
@@ -500,17 +491,17 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                               size: 18,
                                               color: Color(0xFF8A8AFF),
                                             ),
-                                            onPressed: () => _editMenuItem(item),
+                                            onPressed: () => dbf.editMenuItem(context, db, dish),
                                             tooltip: 'Edit Item',
                                           ),
                                           IconButton(
                                             icon: Icon(
-                                              (item['available'] as bool) ? Icons.visibility_off : Icons.visibility,
+                                              dish.isAvailable? Icons.visibility_off : Icons.visibility,
                                               size: 18,
-                                              color: (item['available'] as bool) ? Colors.orange : Colors.green,
+                                              color: dish.isAvailable ? Colors.orange : Colors.green,
                                             ),
-                                            onPressed: () => _toggleAvailability(item),
-                                            tooltip: (item['available'] as bool) ? 'Make Unavailable' : 'Make Available',
+                                            onPressed: () => dbf.toggleAvailability(dish, context),
+                                            tooltip: (dish.isAvailable) ? 'Make Unavailable' : 'Make Available',
                                           ),
                                           IconButton(
                                             icon: const Icon(
@@ -518,7 +509,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                               size: 18,
                                               color: Colors.red,
                                             ),
-                                            onPressed: () => _deleteMenuItem(item),
+                                            onPressed: () => dbf.deleteMenuItem(context, db, dish),
                                             tooltip: 'Delete Item',
                                           ),
                                         ],
@@ -545,12 +536,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getFilteredMenuItems() {
-    if (_selectedCategory == 'All') {
-      return _menuItems;
-    }
-    return _menuItems.where((item) => item['category'] == _selectedCategory).toList();
-  }
+  
+
 
 
   void _showAddMenuItemDialog() {
@@ -572,77 +559,6 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     );
   }
 
-  void _editMenuItem(Dishe dish) {
-    final nameController = TextEditingController(text: dish.name);
-  final categoryController = TextEditingController(text: dish.category ?? '');
-  final priceController = TextEditingController(text: dish.price.toString());
-  final portionController = TextEditingController(text: dish.portionSize ?? '');
-  final prepTimeController = TextEditingController(text: dish.prepTime ?? '');
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Edit ${dish.name}'),
-      content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: "Name")),
-            TextField(controller: categoryController, decoration: const InputDecoration(labelText: "Category")),
-            TextField(controller: priceController, decoration: const InputDecoration(labelText: "Price"), keyboardType: TextInputType.number),
-            TextField(controller: portionController, decoration: const InputDecoration(labelText: "Portion Size")),
-            TextField(controller: prepTimeController, decoration: const InputDecoration(labelText: "Prep Time")),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: (){
-            dbf.editDish(portionController, nameController, categoryController, priceController, prepTimeController, context, dish);
-          },
-          child: const Text('Save Changes'),
-        ),
-      ],
-    ),
-  );
-}
 
-  
-
- void _deleteMenuItem(Dishe dish) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Delete Menu Item'),
-      content: Text('Are you sure you want to delete "${dish.name}"?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await (db.delete(db.dishes)..where((t) => t.id.equals(dish.id))).go();
-
-            Navigator.pop(context);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${dish.name} deleted'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
-  );
-}
 
 }

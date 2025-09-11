@@ -175,8 +175,8 @@ class DashboardScreen extends StatelessWidget {
         _buildStatCard(
           context,
           'Today\'s Revenue',
-          '₹25,400',
-          Icons.attach_money,
+          '₹25,406',
+          Icons.currency_rupee_outlined,
           const Color(0xFF4CAF50),
         ),
         const SizedBox(height: 12),
