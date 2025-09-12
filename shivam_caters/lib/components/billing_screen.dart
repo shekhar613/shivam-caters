@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'main_layout.dart';
 
 class BillingScreen extends StatefulWidget {
   const BillingScreen({super.key});
@@ -97,19 +98,10 @@ class _BillingScreenState extends State<BillingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Billing & Invoices'),
-        backgroundColor: const Color(0xFF8A8AFF),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showCreateInvoiceDialog(),
-          ),
-        ],
-      ),
-      body: Column(
+    return MainLayout(
+      title: 'Billing & Invoices',
+      currentScreen: 'billing',
+      child: Column(
         children: [
           // Summary Cards
           Container(
@@ -536,11 +528,6 @@ class _BillingScreenState extends State<BillingScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateInvoiceDialog(),
-        backgroundColor: const Color(0xFF8A8AFF),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

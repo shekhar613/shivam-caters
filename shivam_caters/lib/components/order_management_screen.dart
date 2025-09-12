@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'main_layout.dart';
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({super.key});
@@ -105,19 +106,10 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Management'),
-        backgroundColor: const Color(0xFF8A8AFF),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddOrderDialog(),
-          ),
-        ],
-      ),
-      body: Column(
+    return MainLayout(
+      title: 'Order Management',
+      currentScreen: 'orders',
+      child: Column(
         children: [
           // Search and Filter Section
           Container(
@@ -539,11 +531,6 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddOrderDialog(),
-        backgroundColor: const Color(0xFF8A8AFF),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

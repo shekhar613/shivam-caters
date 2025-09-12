@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'main_layout.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -57,19 +58,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inventory Management'),
-        backgroundColor: const Color(0xFF8A8AFF),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddInventoryDialog(),
-          ),
-        ],
-      ),
-      body: Column(
+    return MainLayout(
+      title: 'Inventory Management',
+      currentScreen: 'inventory',
+      child: Column(
         children: [
           // Summary Cards
           Container(
@@ -155,11 +147,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddInventoryDialog(),
-        backgroundColor: const Color(0xFF8A8AFF),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
