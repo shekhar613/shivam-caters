@@ -1,32 +1,19 @@
 import 'package:flutter/material.dart';
 import 'navigation_helper.dart';
 import '../utils/responsive_helper.dart';
+import 'main_layout.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          ResponsiveHelper.isMobile(context) 
-            ? 'Dashboard' 
-            : 'Shivam Caters - Management Dashboard',
-          style: TextStyle(
-            fontSize: ResponsiveHelper.getResponsiveFontSize(
-              context,
-              mobile: 18.0,
-              tablet: 20.0,
-              desktop: 22.0,
-            ),
-          ),
-        ),
-        backgroundColor: const Color(0xFF8A8AFF),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
+    return MainLayout(
+      title: ResponsiveHelper.isMobile(context) 
+        ? 'Dashboard' 
+        : 'Shivam Caters - Management Dashboard',
+      currentScreen: 'dashboard',
+      child: SingleChildScrollView(
         padding: ResponsiveHelper.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

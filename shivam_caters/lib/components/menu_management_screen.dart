@@ -3,6 +3,7 @@ import 'package:shivam_caters/components/add_dish_screen.dart';
 import 'package:shivam_caters/database/app_database.dart';
 import 'package:shivam_caters/database/db_instance.dart';
 import 'package:shivam_caters/utils/db_functions.dart';
+import 'main_layout.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   const MenuManagementScreen({super.key});
@@ -34,19 +35,10 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu Management'),
-        backgroundColor: const Color(0xFF8A8AFF),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddMenuItemDialog(),
-          ),
-        ],
-      ),
-      body: Column(
+    return MainLayout(
+      title: 'Menu Management',
+      currentScreen: 'menu',
+      child: Column(
         children: [
           // Search and Filter Section
           Container(
@@ -527,11 +519,6 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
           ),
 
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddMenuItemDialog(),
-        backgroundColor: const Color(0xFF8A8AFF),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
