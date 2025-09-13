@@ -153,10 +153,10 @@ class _MainLayoutState extends State<MainLayout> {
 
           
           floatingActionButton: FloatingActionButton(
+            heroTag: "main_fab",
             onPressed: widget.onPressed,
             backgroundColor: Color(0xFF8A8AFF),
             child: Icon(Icons.add),
-            
             ),
         
     );

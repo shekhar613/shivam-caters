@@ -583,16 +583,6 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant("In Stock"),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -600,7 +590,6 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
     category,
     availableQuantity,
     minQuantity,
-    status,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -649,12 +638,6 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
         ),
       );
     }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
     return context;
   }
 
@@ -684,10 +667,6 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
         DriftSqlType.double,
         data['${effectivePrefix}min_quantity'],
       )!,
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
     );
   }
 
@@ -703,14 +682,12 @@ class Stock extends DataClass implements Insertable<Stock> {
   final String? category;
   final double availableQuantity;
   final double minQuantity;
-  final String status;
   const Stock({
     required this.id,
     required this.name,
     this.category,
     required this.availableQuantity,
     required this.minQuantity,
-    required this.status,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -722,7 +699,6 @@ class Stock extends DataClass implements Insertable<Stock> {
     }
     map['available_quantity'] = Variable<double>(availableQuantity);
     map['min_quantity'] = Variable<double>(minQuantity);
-    map['status'] = Variable<String>(status);
     return map;
   }
 
@@ -735,7 +711,6 @@ class Stock extends DataClass implements Insertable<Stock> {
           : Value(category),
       availableQuantity: Value(availableQuantity),
       minQuantity: Value(minQuantity),
-      status: Value(status),
     );
   }
 
@@ -750,7 +725,6 @@ class Stock extends DataClass implements Insertable<Stock> {
       category: serializer.fromJson<String?>(json['category']),
       availableQuantity: serializer.fromJson<double>(json['availableQuantity']),
       minQuantity: serializer.fromJson<double>(json['minQuantity']),
-      status: serializer.fromJson<String>(json['status']),
     );
   }
   @override
@@ -762,7 +736,6 @@ class Stock extends DataClass implements Insertable<Stock> {
       'category': serializer.toJson<String?>(category),
       'availableQuantity': serializer.toJson<double>(availableQuantity),
       'minQuantity': serializer.toJson<double>(minQuantity),
-      'status': serializer.toJson<String>(status),
     };
   }
 
@@ -772,14 +745,12 @@ class Stock extends DataClass implements Insertable<Stock> {
     Value<String?> category = const Value.absent(),
     double? availableQuantity,
     double? minQuantity,
-    String? status,
   }) => Stock(
     id: id ?? this.id,
     name: name ?? this.name,
     category: category.present ? category.value : this.category,
     availableQuantity: availableQuantity ?? this.availableQuantity,
     minQuantity: minQuantity ?? this.minQuantity,
-    status: status ?? this.status,
   );
   Stock copyWithCompanion(StocksCompanion data) {
     return Stock(
@@ -792,7 +763,6 @@ class Stock extends DataClass implements Insertable<Stock> {
       minQuantity: data.minQuantity.present
           ? data.minQuantity.value
           : this.minQuantity,
-      status: data.status.present ? data.status.value : this.status,
     );
   }
 
@@ -803,15 +773,14 @@ class Stock extends DataClass implements Insertable<Stock> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('availableQuantity: $availableQuantity, ')
-          ..write('minQuantity: $minQuantity, ')
-          ..write('status: $status')
+          ..write('minQuantity: $minQuantity')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, name, category, availableQuantity, minQuantity, status);
+      Object.hash(id, name, category, availableQuantity, minQuantity);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -820,8 +789,7 @@ class Stock extends DataClass implements Insertable<Stock> {
           other.name == this.name &&
           other.category == this.category &&
           other.availableQuantity == this.availableQuantity &&
-          other.minQuantity == this.minQuantity &&
-          other.status == this.status);
+          other.minQuantity == this.minQuantity);
 }
 
 class StocksCompanion extends UpdateCompanion<Stock> {
@@ -830,14 +798,12 @@ class StocksCompanion extends UpdateCompanion<Stock> {
   final Value<String?> category;
   final Value<double> availableQuantity;
   final Value<double> minQuantity;
-  final Value<String> status;
   const StocksCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.category = const Value.absent(),
     this.availableQuantity = const Value.absent(),
     this.minQuantity = const Value.absent(),
-    this.status = const Value.absent(),
   });
   StocksCompanion.insert({
     this.id = const Value.absent(),
@@ -845,7 +811,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     this.category = const Value.absent(),
     this.availableQuantity = const Value.absent(),
     this.minQuantity = const Value.absent(),
-    this.status = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Stock> custom({
     Expression<int>? id,
@@ -853,7 +818,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     Expression<String>? category,
     Expression<double>? availableQuantity,
     Expression<double>? minQuantity,
-    Expression<String>? status,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -861,7 +825,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
       if (category != null) 'category': category,
       if (availableQuantity != null) 'available_quantity': availableQuantity,
       if (minQuantity != null) 'min_quantity': minQuantity,
-      if (status != null) 'status': status,
     });
   }
 
@@ -871,7 +834,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     Value<String?>? category,
     Value<double>? availableQuantity,
     Value<double>? minQuantity,
-    Value<String>? status,
   }) {
     return StocksCompanion(
       id: id ?? this.id,
@@ -879,7 +841,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
       category: category ?? this.category,
       availableQuantity: availableQuantity ?? this.availableQuantity,
       minQuantity: minQuantity ?? this.minQuantity,
-      status: status ?? this.status,
     );
   }
 
@@ -901,9 +862,6 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     if (minQuantity.present) {
       map['min_quantity'] = Variable<double>(minQuantity.value);
     }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
     return map;
   }
 
@@ -914,8 +872,7 @@ class StocksCompanion extends UpdateCompanion<Stock> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('availableQuantity: $availableQuantity, ')
-          ..write('minQuantity: $minQuantity, ')
-          ..write('status: $status')
+          ..write('minQuantity: $minQuantity')
           ..write(')'))
         .toString();
   }
@@ -1191,7 +1148,6 @@ typedef $$StocksTableCreateCompanionBuilder =
       Value<String?> category,
       Value<double> availableQuantity,
       Value<double> minQuantity,
-      Value<String> status,
     });
 typedef $$StocksTableUpdateCompanionBuilder =
     StocksCompanion Function({
@@ -1200,7 +1156,6 @@ typedef $$StocksTableUpdateCompanionBuilder =
       Value<String?> category,
       Value<double> availableQuantity,
       Value<double> minQuantity,
-      Value<String> status,
     });
 
 class $$StocksTableFilterComposer
@@ -1234,11 +1189,6 @@ class $$StocksTableFilterComposer
 
   ColumnFilters<double> get minQuantity => $composableBuilder(
     column: $table.minQuantity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1276,11 +1226,6 @@ class $$StocksTableOrderingComposer
     column: $table.minQuantity,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$StocksTableAnnotationComposer
@@ -1310,9 +1255,6 @@ class $$StocksTableAnnotationComposer
     column: $table.minQuantity,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
 }
 
 class $$StocksTableTableManager
@@ -1348,14 +1290,12 @@ class $$StocksTableTableManager
                 Value<String?> category = const Value.absent(),
                 Value<double> availableQuantity = const Value.absent(),
                 Value<double> minQuantity = const Value.absent(),
-                Value<String> status = const Value.absent(),
               }) => StocksCompanion(
                 id: id,
                 name: name,
                 category: category,
                 availableQuantity: availableQuantity,
                 minQuantity: minQuantity,
-                status: status,
               ),
           createCompanionCallback:
               ({
@@ -1364,14 +1304,12 @@ class $$StocksTableTableManager
                 Value<String?> category = const Value.absent(),
                 Value<double> availableQuantity = const Value.absent(),
                 Value<double> minQuantity = const Value.absent(),
-                Value<String> status = const Value.absent(),
               }) => StocksCompanion.insert(
                 id: id,
                 name: name,
                 category: category,
                 availableQuantity: availableQuantity,
                 minQuantity: minQuantity,
-                status: status,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

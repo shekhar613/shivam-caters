@@ -43,7 +43,6 @@ class _AddInverntoryScreenState extends State<AddInverntoryScreen> {
         category: Value(_selectedCategory),
         availableQuantity: Value(double.tryParse(_availableQuantityController.text.trim()) ?? 0),
         minQuantity: Value(double.tryParse(_minQuantityController.text.trim()) ?? 0),
-        status: Value("In Stock"),
       );
 
       await db.insertStock(stock); // ✅ Insert into DB

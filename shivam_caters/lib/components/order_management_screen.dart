@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_layout.dart';
+import 'add_order_screen.dart';
+import 'navigation_helper.dart';
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({super.key});
@@ -589,23 +591,12 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   }
 
   void _showAddOrderDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Order'),
-        content: const Text('Order creation form will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Add Order'),
-          ),
-        ],
-      ),
-    );
+    NavigationHelper.navigateToAddOrder(context).then((_) {
+      // Refresh the order list when returning from add order screen
+      setState(() {
+        // In a real app, you would refresh data from database here
+      });
+    });
   }
 
   void _showOrderDetails(Map<String, dynamic> order) {

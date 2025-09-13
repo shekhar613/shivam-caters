@@ -1,0 +1,20 @@
+{
+  "Customer details":{
+    "Name":"customer-name",
+    "Contact":"9999999999",
+    "Event name":"Event-name",
+    "Event date":"Event-date",
+    "Booking date":"Booking date",
+    "Address":"Customer-address"
+  },
+  "Event details":{
+    "Event place":"Event-place",
+    "Decoration":"",
+    "Nashta":"",
+    "Lunch":"",
+    "Dinner":""
+  },
+  "Billing details":{
+    
+  }
+}
