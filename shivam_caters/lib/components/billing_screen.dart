@@ -99,6 +99,7 @@ class _BillingScreenState extends State<BillingScreen> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
+      onPressed: _showCreateInvoiceDialog,
       title: 'Billing & Invoices',
       currentScreen: 'billing',
       child: Column(

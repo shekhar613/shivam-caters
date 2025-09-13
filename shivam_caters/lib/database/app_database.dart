@@ -17,9 +17,16 @@ class Dishes extends Table {
   TextColumn get prepTime => text().nullable()();
   BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
 }
+class Stocks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get category => text().nullable()();
+  RealColumn get availableQuantity => real().withDefault(const Constant(0))();
+  RealColumn get minQuantity => real().withDefault(const Constant(0))();
+}
 
 // Main database class
-@DriftDatabase(tables: [Dishes])
+@DriftDatabase(tables: [Dishes, Stocks])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -47,6 +54,26 @@ class AppDatabase extends _$AppDatabase {
   // ✅ Delete dish
   Future deleteDish(int id) {
     return (delete(dishes)..where((t) => t.id.equals(id))).go();
+  }
+  
+  // ✅ Function to insert stock
+  Future<int> insertStock(StocksCompanion stock) {
+    return into(stocks).insert(stock);
+  }
+
+  // ✅ Function to watch all stocks
+  Stream<List<Stock>> watchStocks() {
+    return select(stocks).watch();
+  }
+
+  // ✅ Function to update a stock row
+  Future<bool> updateStock(Stock stock) {
+    return update(stocks).replace(stock);
+  }
+
+  // ✅ Function to delete a stock row
+  Future<int> deleteStock(int id) {
+    return (delete(stocks)..where((tbl) => tbl.id.equals(id))).go();
   }
 }
 

@@ -3,101 +3,72 @@ import 'package:flutter/material.dart';
 import '../database/db_instance.dart';
 import '../database/app_database.dart'; // Drift generated
 
-class AddDishScreen extends StatefulWidget {
-  const AddDishScreen({super.key});
+class AddInverntoryScreen extends StatefulWidget {
+  const AddInverntoryScreen({super.key});
 
   @override
-  State<AddDishScreen> createState() => _AddDishScreenState();
+  State<AddInverntoryScreen> createState() => _AddInverntoryScreenState();
 }
 
-class _AddDishScreenState extends State<AddDishScreen> {
+class _AddInverntoryScreenState extends State<AddInverntoryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _portionController = TextEditingController();
-  final _prepTimeController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _availableQuantityController = TextEditingController();
+  final _minQuantityController = TextEditingController();
+  final _statusController = TextEditingController();
   
-  String _selectedCategory = 'Appetizers';
-  bool _isAvailable = true;
+  String _selectedCategory = 'Vegetables';
   bool _isLoading = false;
   
   final List<String> _categories = [
-    'Appetizers',
-    'Main Course',
-    'Breads',
-    'Desserts',
-    'Beverages',
-    'Salads',
-    'Soups',
-    'Snacks'
+    'Vegetables',
+    'Oil',
+    'Grains',
   ];
 
   @override
   void dispose() {
     _nameController.dispose();
-    _priceController.dispose();
-    _portionController.dispose();
-    _prepTimeController.dispose();
-    _descriptionController.dispose();
+    _availableQuantityController.dispose();
+    _minQuantityController.dispose();
+    _statusController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveDish() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _saveStock() async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      final stock = StocksCompanion(
+        name: Value(_nameController.text.trim()),
+        category: Value(_selectedCategory),
+        availableQuantity: Value(double.tryParse(_availableQuantityController.text.trim()) ?? 0),
+        minQuantity: Value(double.tryParse(_minQuantityController.text.trim()) ?? 0),
+        status: Value("In Stock"),
+      );
 
-      try {
-        final dish = DishesCompanion(
-          
-          name: Value(_nameController.text.trim()),
-          category: Value(_selectedCategory),
-          price: Value(double.tryParse(_priceController.text.trim()) ?? 0),
-          portionSize: Value(_portionController.text.trim()),
-          prepTime:  Value(_prepTimeController.text.trim()),
-          description: Value(_descriptionController.text.trim()),
-          isAvailable: Value(_isAvailable),
+      await db.insertStock(stock); // ✅ Insert into DB
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Stock added successfully ✅")),
         );
-
-        await db.into(db.dishes).insert(dish);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text("Dish added successfully ✅"),
-              backgroundColor: const Color(0xFF4CAF50),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          Navigator.pop(context, true);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Error adding dish: $e"),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
       }
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add New Dish"),
+        title: const Text("Add New Stock"),
         backgroundColor: const Color(0xFF8A8AFF),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -150,7 +121,7 @@ class _AddDishScreenState extends State<AddDishScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        "Add New Dish",
+                        "Add New Stock",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -159,7 +130,7 @@ class _AddDishScreenState extends State<AddDishScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Fill in the details to add a new dish to your menu",
+                        "Fill in the details to add a new Stock to your Inventory",
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -193,11 +164,11 @@ class _AddDishScreenState extends State<AddDishScreen> {
                         // Dish Name
                         _buildTextField(
                           controller: _nameController,
-                          label: "Dish Name",
-                          hint: "Enter dish name",
-                          icon: Icons.restaurant,
+                          label: "Stock Name",
+                          hint: "Enter Stock name",
+                          icon: Icons.inventory,
                           validator: (value) => value == null || value.isEmpty 
-                              ? "Please enter dish name" : null,
+                              ? "Please enter stock name" : null,
                         ),
                         const SizedBox(height: 10),
                         
@@ -207,21 +178,19 @@ class _AddDishScreenState extends State<AddDishScreen> {
                         
                         // Price
                         _buildTextField(
-                          controller: _priceController,
-                          label: "Price (₹)",
-                          hint: "Enter price",
-                          icon: Icons.currency_rupee_outlined,
+                          controller: _availableQuantityController,
+                          label: "Stock Quantity (kg)",
+                          hint: "Enter quantity",
+                          icon: Icons.pix_rounded,
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Please enter price";
+                              return "Please enter quantity";
                             }
                             if (double.tryParse(value) == null) {
-                              return "Please enter a valid price";
+                              return "Please enter a valid quantity";
                             }
-                            if (double.parse(value) <= 0) {
-                              return "Price must be greater than 0";
-                            }
+                           
                             return null;
                           },
                         ),
@@ -229,72 +198,17 @@ class _AddDishScreenState extends State<AddDishScreen> {
                         
                         // Portion Size
                         _buildTextField(
-                          controller: _portionController,
-                          label: "Portion Size",
-                          hint: "e.g., 1 plate, 2 pieces, 250ml",
+                          controller: _minQuantityController,
+                          label: "Min Stock Size",
+                          hint: "e.g., 10 kg, 15kg, 20kg etc",
                           icon: Icons.scale,
                         ),
-                        const SizedBox(height: 10),
-                        
-                        // Prep Time
-                        _buildTextField(
-                          controller: _prepTimeController,
-                          label: "Preparation Time",
-                          hint: "e.g., 15 mins, 30 mins",
-                          icon: Icons.timer,
-                        ),
-                        const SizedBox(height: 10),
-                        
-                        // Description
-                        _buildTextField(
-                          controller: _descriptionController,
-                          label: "Description",
-                          hint: "Brief description of the dish",
-                          icon: Icons.description,
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 10),
-                        
-                        // Availability Toggle
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.visibility,
-                                color: _isAvailable ? Colors.green : Colors.orange,
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                "Available",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              Switch(
-                                value: _isAvailable,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isAvailable = value;
-                                  });
-                                },
-                                activeColor: const Color(0xFF8A8AFF),
-                              ),
-                            ],
-                          ),
-                        ),
+                     
                         const SizedBox(height: 22),
                         
                         // Save Button
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _saveDish,
+                          onPressed: _isLoading ? null : _saveStock,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF8A8AFF),
                             foregroundColor: Colors.white,
@@ -319,7 +233,7 @@ class _AddDishScreenState extends State<AddDishScreen> {
                                     Icon(Icons.save, size: 20),
                                     SizedBox(width: 8),
                                     Text(
-                                      "Save Dish",
+                                      "Save Stock",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,

@@ -6,12 +6,14 @@ class MainLayout extends StatefulWidget {
   final Widget child;
   final String title;
   final String currentScreen;
+  final VoidCallback onPressed;
 
   const MainLayout({
     super.key,
     required this.child,
     required this.title,
     required this.currentScreen,
+    required this.onPressed,
   });
 
   @override
@@ -19,6 +21,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
+
   bool _isSidebarExpanded = true;
 
   @override
@@ -26,7 +29,7 @@ class _MainLayoutState extends State<MainLayout> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
     final isTablet = screenWidth >= 768 && screenWidth < 1024;
-    
+
     return Scaffold(
       body: Row(
         children: [
@@ -63,18 +66,23 @@ class _MainLayoutState extends State<MainLayout> {
                     children: [
                       // Menu button - Show only when sidebar is closed or on mobile
                       if (isMobile || !_isSidebarExpanded)
-                        IconButton(
-                          onPressed: () {
-                            if (isMobile) {
-                              Scaffold.of(context).openDrawer();
-                            } else {
-                              setState(() {
-                                _isSidebarExpanded = !_isSidebarExpanded;
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.menu),
-                        ),
+                        Builder(
+  builder: (context) {
+    return IconButton(
+      icon: Icon(Icons.menu),
+      onPressed: () {
+        if (isMobile) {
+          Scaffold.of(context).openDrawer();
+        } else {
+          setState(() {
+            _isSidebarExpanded = !_isSidebarExpanded;
+          });
+        }
+      },
+    );
+  },
+),
+
                       
                       // Title
                       Expanded(
@@ -142,6 +150,15 @@ class _MainLayoutState extends State<MainLayout> {
               ),
             )
           : null,
+
+          
+          floatingActionButton: FloatingActionButton(
+            onPressed: widget.onPressed,
+            backgroundColor: Color(0xFF8A8AFF),
+            child: Icon(Icons.add),
+            
+            ),
+        
     );
   }
 }

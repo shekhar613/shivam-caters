@@ -1,4 +1,8 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:shivam_caters/components/add_inverntory_screen.dart';
+import 'package:shivam_caters/database/app_database.dart';
+import 'package:shivam_caters/database/db_instance.dart';
 import 'main_layout.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -12,141 +16,111 @@ class _InventoryScreenState extends State<InventoryScreen> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Low Stock', 'Out of Stock', 'In Stock'];
 
-  // Sample inventory data
-  final List<Map<String, dynamic>> _inventoryItems = [
-    {
-      'id': 'INV-001',
-      'name': 'Chicken (kg)',
-      'category': 'Meat',
-      'currentStock': 15,
-      'minStock': 10,
-      'unit': 'kg',
-      'lastUpdated': '2024-01-15',
-      'supplier': 'Fresh Meat Co.',
-    },
-    {
-      'id': 'INV-002',
-      'name': 'Rice (kg)',
-      'category': 'Grains',
-      'currentStock': 5,
-      'minStock': 20,
-      'unit': 'kg',
-      'lastUpdated': '2024-01-14',
-      'supplier': 'Grain Suppliers',
-    },
-    {
-      'id': 'INV-003',
-      'name': 'Onions (kg)',
-      'category': 'Vegetables',
-      'currentStock': 0,
-      'minStock': 5,
-      'unit': 'kg',
-      'lastUpdated': '2024-01-13',
-      'supplier': 'Veggie Mart',
-    },
-    {
-      'id': 'INV-004',
-      'name': 'Cooking Oil (L)',
-      'category': 'Cooking Essentials',
-      'currentStock': 25,
-      'minStock': 10,
-      'unit': 'L',
-      'lastUpdated': '2024-01-16',
-      'supplier': 'Oil Distributors',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    
     return MainLayout(
+      onPressed: _showAddInventoryDialog,
       title: 'Inventory Management',
       currentScreen: 'inventory',
-      child: Column(
-        children: [
-          // Summary Cards
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Total Items',
-                    '${_inventoryItems.length}',
-                    Icons.inventory,
-                    const Color(0xFF8A8AFF),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Low Stock',
-                    '${_getLowStockCount()}',
-                    Icons.warning,
-                    const Color(0xFFFF9800),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Out of Stock',
-                    '${_getOutOfStockCount()}',
-                    Icons.error,
-                    const Color(0xFFF44336),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Filter Section
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Text(
-                  'Filter: ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _filters.map((filter) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(filter),
-                            selected: _selectedFilter == filter,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedFilter = filter;
-                              });
-                            },
-                            selectedColor: const Color(0xFF8A8AFF).withOpacity(0.3),
-                            checkmarkColor: const Color(0xFF8A8AFF),
-                          ),
-                        );
-                      }).toList(),
+      child: StreamBuilder<List<Stock>>(
+        stream: db.select(db.stocks).watch(), // 🚀 Listen to DB changes
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allItems = snapshot.data!;
+          final filteredItems = _getFilteredItems(allItems);
+
+          return Column(
+            children: [
+              // Summary Cards
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Total Items',
+                        '${allItems.length}',
+                        Icons.inventory,
+                        const Color(0xFF8A8AFF),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Low Stock',
+                        '${_getLowStockCount(allItems)}',
+                        Icons.warning,
+                        const Color(0xFFFF9800),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Out of Stock',
+                        '${_getOutOfStockCount(allItems)}',
+                        Icons.error,
+                        const Color(0xFFF44336),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          
-          // Inventory Items List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _getFilteredItems().length,
-              itemBuilder: (context, index) {
-                final item = _getFilteredItems()[index];
-                return _buildInventoryCard(item);
-              },
-            ),
-          ),
-        ],
+              ),
+
+              // Filter Section
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Filter: ',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _filters.map((filter) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(filter),
+                                selected: _selectedFilter == filter,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedFilter = filter;
+                                  });
+                                },
+                                selectedColor: const Color(0xFF8A8AFF).withOpacity(0.3),
+                                checkmarkColor: const Color(0xFF8A8AFF),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Inventory Items List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredItems.length,
+                  itemBuilder: (context, index) {
+                    final item = filteredItems[index];
+                    return _buildInventoryCard(item);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -191,37 +165,33 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  int _getLowStockCount() {
-    return _inventoryItems.where((item) => 
-      item['currentStock'] < item['minStock'] && item['currentStock'] > 0
-    ).length;
+  int _getLowStockCount(List<Stock> items) {
+    return items
+        .where((item) => item.availableQuantity <= item.minQuantity && item.availableQuantity > 0)
+        .length;
   }
 
-  int _getOutOfStockCount() {
-    return _inventoryItems.where((item) => item['currentStock'] == 0).length;
+  int _getOutOfStockCount(List<Stock> items) {
+    return items.where((item) => item.availableQuantity == 0).length;
   }
 
-  List<Map<String, dynamic>> _getFilteredItems() {
+  List<Stock> _getFilteredItems(List<Stock> items) {
     switch (_selectedFilter) {
       case 'Low Stock':
-        return _inventoryItems.where((item) => 
-          item['currentStock'] < item['minStock'] && item['currentStock'] > 0
-        ).toList();
+        return items.where((item) => item.availableQuantity < item.minQuantity && item.availableQuantity > 0).toList();
       case 'Out of Stock':
-        return _inventoryItems.where((item) => item['currentStock'] == 0).toList();
+        return items.where((item) => item.availableQuantity == 0).toList();
       case 'In Stock':
-        return _inventoryItems.where((item) => 
-          item['currentStock'] >= item['minStock']
-        ).toList();
+        return items.where((item) => item.availableQuantity >= item.minQuantity).toList();
       default:
-        return _inventoryItems;
+        return items;
     }
   }
 
-  Widget _buildInventoryCard(Map<String, dynamic> item) {
+  Widget _buildInventoryCard(Stock item) {
     String stockStatus = _getStockStatus(item);
     Color statusColor = _getStatusColor(stockStatus);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 4,
@@ -236,7 +206,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    item['name'],
+                    item.name,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -264,17 +234,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Category: ${item['category']}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Supplier: ${item['supplier']}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Last Updated: ${item['lastUpdated']}',
+              'Category: ${item.category}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 12),
@@ -285,7 +245,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Current Stock: ${item['currentStock']} ${item['unit']}',
+                      'Current Stock: ${item.availableQuantity}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -293,7 +253,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                     ),
                     Text(
-                      'Min Required: ${item['minStock']} ${item['unit']}',
+                      'Min Required: ${item.minQuantity}',
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
@@ -303,14 +263,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     IconButton(
                       onPressed: () => _updateStock(item),
                       icon: const Icon(Icons.edit, color: Color(0xFF8A8AFF)),
-                    ),
-                    IconButton(
-                      onPressed: () => _addStock(item),
-                      icon: const Icon(Icons.add_circle, color: Color(0xFF4CAF50)),
-                    ),
-                    IconButton(
-                      onPressed: () => _removeStock(item),
-                      icon: const Icon(Icons.remove_circle, color: Colors.orange),
                     ),
                   ],
                 ),
@@ -322,10 +274,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  String _getStockStatus(Map<String, dynamic> item) {
-    if (item['currentStock'] == 0) {
+  String _getStockStatus(Stock item) {
+    if (item.availableQuantity == 0) {
       return 'Out of Stock';
-    } else if (item['currentStock'] < item['minStock']) {
+    } else if (item.availableQuantity < item.minQuantity) {
       return 'Low Stock';
     } else {
       return 'In Stock';
@@ -349,65 +301,71 @@ class _InventoryScreenState extends State<InventoryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Inventory Item'),
-        content: const Text('Inventory item creation form will be implemented here.'),
+        title: SizedBox(width: 600, child: const Text('Add Stock Item')),
+        content: const AddInverntoryScreen(),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Add Item'),
           ),
         ],
       ),
     );
   }
 
-  void _updateStock(Map<String, dynamic> item) {
+  // Edit Stock Item
+  void _updateStock(Stock stock) {
+    final nameController = TextEditingController(text: stock.name);
+    final minQuantityController = TextEditingController(text: stock.minQuantity.toString());
+    var categoryController = TextEditingController(text: stock.category ?? '');
+    final availableQuantityController = TextEditingController(text: stock.availableQuantity.toString());
+
+    final List<String> _categories = ['Vegetables', 'Oil', 'Grains'];
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Update Stock - ${item['name']}'),
-        content: const Text('Stock update form will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+        title: Text('Edit ${stock.name}'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameController, decoration: const InputDecoration(labelText: "Stock Name")),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: categoryController.text.isEmpty ? null : categoryController.text,
+                items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                onChanged: (val) => categoryController.text = val!,
+                decoration: const InputDecoration(labelText: "Category"),
+              ),
+              const SizedBox(height: 12),
+              TextField(controller: availableQuantityController, decoration: const InputDecoration(labelText: "Available Stocks")),
+              const SizedBox(height: 12),
+              TextField(controller: minQuantityController, decoration: const InputDecoration(labelText: "Minimum Stock Quantity")),
+            ],
           ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Update'),
+            onPressed: () async {
+              await (db.update(db.stocks)..where((t) => t.id.equals(stock.id))).write(
+                StocksCompanion(
+                  name: Value(nameController.text),
+                  minQuantity: Value(double.tryParse(minQuantityController.text) ?? stock.minQuantity),
+                  category: Value(categoryController.text),
+                  availableQuantity: Value(double.tryParse(availableQuantityController.text) ?? stock.availableQuantity),
+                ),
+              );
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${stock.name} updated'), backgroundColor: Colors.green),
+              );
+            },
+            child: const Text("Update"),
           ),
         ],
       ),
     );
-  }
-
-  void _addStock(Map<String, dynamic> item) {
-    setState(() {
-      item['currentStock'] += 10; // Add 10 units
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Added 10 ${item['unit']} to ${item['name']}'),
-        backgroundColor: const Color(0xFF4CAF50),
-      ),
-    );
-  }
-
-  void _removeStock(Map<String, dynamic> item) {
-    if (item['currentStock'] > 0) {
-      setState(() {
-        item['currentStock'] = (item['currentStock'] - 5).clamp(0, double.infinity);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Removed 5 ${item['unit']} from ${item['name']}'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    }
   }
 }

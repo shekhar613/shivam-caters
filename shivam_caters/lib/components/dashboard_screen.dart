@@ -8,7 +8,9 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+   
     return MainLayout(
+      onPressed: (){},
       title: ResponsiveHelper.isMobile(context) 
         ? 'Dashboard' 
         : 'Shivam Caters - Management Dashboard',
@@ -114,33 +116,33 @@ class DashboardScreen extends StatelessWidget {
             )),
             
             // Management Sections
-            Text(
-              'Management Tools',
-              style: TextStyle(
-                fontSize: ResponsiveHelper.getResponsiveFontSize(
-                  context,
-                  mobile: 20.0,
-                  tablet: 24.0,
-                  desktop: 28.0,
-                ),
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF000047),
-              ),
-            ),
-            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
-              context,
-              mobile: 12.0,
-              tablet: 16.0,
-              desktop: 20.0,
-            )),
+            // Text(
+            //   'Management Tools',
+            //   style: TextStyle(
+            //     fontSize: ResponsiveHelper.getResponsiveFontSize(
+            //       context,
+            //       mobile: 20.0,
+            //       tablet: 24.0,
+            //       desktop: 28.0,
+            //     ),
+            //     fontWeight: FontWeight.bold,
+            //     color: const Color(0xFF000047),
+            //   ),
+            // ),
+            // SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+            //   context,
+            //   mobile: 12.0,
+            //   tablet: 16.0,
+            //   desktop: 20.0,
+            // )),
             
             // Responsive management cards
-            ResponsiveHelper.getResponsiveLayout(
-              context,
-              mobile: _buildMobileManagementCards(context),
-              tablet: _buildTabletManagementCards(context),
-              desktop: _buildDesktopManagementCards(context),
-            ),
+            // ResponsiveHelper.getResponsiveLayout(
+            //   context,
+            //   mobile: _buildMobileManagementCards(context),
+            //   tablet: _buildTabletManagementCards(context),
+            //   desktop: _buildDesktopManagementCards(context),
+            // ),
           ],
         ),
       ),
@@ -258,7 +260,7 @@ class DashboardScreen extends StatelessWidget {
             context,
             'Today\'s Revenue',
             '₹25,400',
-            Icons.attach_money,
+            Icons.currency_rupee_outlined,
             const Color(0xFF4CAF50),
           ),
         ),
@@ -267,7 +269,7 @@ class DashboardScreen extends StatelessWidget {
           child: _buildStatCard(
             context,
             'Menu Items',
-            '45',
+            '10',
             Icons.restaurant_menu,
             const Color(0xFFFF9800),
           ),
@@ -325,6 +327,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  // ignore: unused_element
   Widget _buildTabletManagementCards(BuildContext context) {
     return Column(
       children: [
@@ -379,6 +382,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  // ignore: unused_element
   Widget _buildDesktopManagementCards(BuildContext context) {
     return Row(
       children: [

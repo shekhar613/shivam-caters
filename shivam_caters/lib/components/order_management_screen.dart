@@ -107,6 +107,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
+      onPressed: _showAddOrderDialog,
       title: 'Order Management',
       currentScreen: 'orders',
       child: Column(
