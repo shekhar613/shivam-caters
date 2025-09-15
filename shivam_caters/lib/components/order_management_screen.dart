@@ -112,6 +112,10 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       onPressed: _showAddOrderDialog,
       title: 'Order Management',
       currentScreen: 'orders',
+      statusMessage: 'Managing ${_orders.length} orders',
+      totalOrders: _orders.length,
+      pendingOrders: _orders.where((order) => order['status'] == 'Pending').length,
+      completedOrders: _orders.where((order) => order['status'] == 'Completed').length,
       child: Column(
         children: [
           // Search and Filter Section

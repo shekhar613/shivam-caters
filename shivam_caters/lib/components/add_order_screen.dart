@@ -66,6 +66,24 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _nashtaPricePerPersonController = TextEditingController();
   double _nashtaTotal = 0.0;
 
+  // Lunch checkbox and details
+  bool _isLunchSelected = false;
+  final _lunchStartTimeController = TextEditingController();
+  final _lunchEndTimeController = TextEditingController();
+  final _lunchPersonsController = TextEditingController();
+  final _lunchExtraPersonsController = TextEditingController();
+  final _lunchPricePerPersonController = TextEditingController();
+  double _lunchTotal = 0.0;
+
+  // Dinner checkbox and details
+  bool _isDinnerSelected = false;
+  final _dinnerStartTimeController = TextEditingController();
+  final _dinnerEndTimeController = TextEditingController();
+  final _dinnerPersonsController = TextEditingController();
+  final _dinnerExtraPersonsController = TextEditingController();
+  final _dinnerPricePerPersonController = TextEditingController();
+  double _dinnerTotal = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +92,16 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     _nashtaPersonsController.addListener(_calculateNashtaTotal);
     _nashtaExtraPersonsController.addListener(_calculateNashtaTotal);
     _nashtaPricePerPersonController.addListener(_calculateNashtaTotal);
+    
+    // Add listeners to lunch controllers for automatic calculation
+    _lunchPersonsController.addListener(_calculateLunchTotal);
+    _lunchExtraPersonsController.addListener(_calculateLunchTotal);
+    _lunchPricePerPersonController.addListener(_calculateLunchTotal);
+    
+    // Add listeners to dinner controllers for automatic calculation
+    _dinnerPersonsController.addListener(_calculateDinnerTotal);
+    _dinnerExtraPersonsController.addListener(_calculateDinnerTotal);
+    _dinnerPricePerPersonController.addListener(_calculateDinnerTotal);
   }
 
   @override
@@ -105,6 +133,20 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     _nashtaPersonsController.dispose();
     _nashtaExtraPersonsController.dispose();
     _nashtaPricePerPersonController.dispose();
+    
+    // Lunch Details Controllers
+    _lunchStartTimeController.dispose();
+    _lunchEndTimeController.dispose();
+    _lunchPersonsController.dispose();
+    _lunchExtraPersonsController.dispose();
+    _lunchPricePerPersonController.dispose();
+    
+    // Dinner Details Controllers
+    _dinnerStartTimeController.dispose();
+    _dinnerEndTimeController.dispose();
+    _dinnerPersonsController.dispose();
+    _dinnerExtraPersonsController.dispose();
+    _dinnerPricePerPersonController.dispose();
     
     super.dispose();
   }
@@ -163,6 +205,54 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     }
   }
 
+  Future<void> _selectLunchStartTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _lunchStartTimeController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectLunchEndTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _lunchEndTimeController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectDinnerStartTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _dinnerStartTimeController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectDinnerEndTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _dinnerEndTimeController.text = picked.format(context);
+      });
+    }
+  }
+
   void _calculateNashtaTotal() {
     final persons = int.tryParse(_nashtaPersonsController.text) ?? 0;
     final extraPersons = int.tryParse(_nashtaExtraPersonsController.text) ?? 0;
@@ -170,6 +260,26 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     
     setState(() {
       _nashtaTotal = (persons + extraPersons) * pricePerPerson;
+    });
+  }
+
+  void _calculateLunchTotal() {
+    final persons = int.tryParse(_lunchPersonsController.text) ?? 0;
+    final extraPersons = int.tryParse(_lunchExtraPersonsController.text) ?? 0;
+    final pricePerPerson = double.tryParse(_lunchPricePerPersonController.text) ?? 0.0;
+    
+    setState(() {
+      _lunchTotal = (persons + extraPersons) * pricePerPerson;
+    });
+  }
+
+  void _calculateDinnerTotal() {
+    final persons = int.tryParse(_dinnerPersonsController.text) ?? 0;
+    final extraPersons = int.tryParse(_dinnerExtraPersonsController.text) ?? 0;
+    final pricePerPerson = double.tryParse(_dinnerPricePerPersonController.text) ?? 0.0;
+    
+    setState(() {
+      _dinnerTotal = (persons + extraPersons) * pricePerPerson;
     });
   }
 
@@ -197,8 +307,24 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
             "Price per Person": _nashtaPricePerPersonController.text,
             "Total": _nashtaTotal.toStringAsFixed(2),
           } : {"Selected": false},
-          "Lunch": _lunchController.text,
-          "Dinner": _dinnerController.text,
+          "Lunch": _isLunchSelected ? {
+            "Selected": true,
+            "Start Time": _lunchStartTimeController.text,
+            "End Time": _lunchEndTimeController.text,
+            "Number of Persons": _lunchPersonsController.text,
+            "Extra Persons": _lunchExtraPersonsController.text,
+            "Price per Person": _lunchPricePerPersonController.text,
+            "Total": _lunchTotal.toStringAsFixed(2),
+          } : {"Selected": false},
+          "Dinner": _isDinnerSelected ? {
+            "Selected": true,
+            "Start Time": _dinnerStartTimeController.text,
+            "End Time": _dinnerEndTimeController.text,
+            "Number of Persons": _dinnerPersonsController.text,
+            "Extra Persons": _dinnerExtraPersonsController.text,
+            "Price per Person": _dinnerPricePerPersonController.text,
+            "Total": _dinnerTotal.toStringAsFixed(2),
+          } : {"Selected": false},
         },
         "Billing details": {
           "Total Amount": _totalAmountController.text,
@@ -249,6 +375,10 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
       onPressed: () => Navigator.of(context).pop(),
       title: 'Create New Order',
       currentScreen: 'add_order',
+      statusMessage: 'Ready to create new order',
+      totalOrders: 45,
+      pendingOrders: 12,
+      completedOrders: 33,
       child: ScrollConfiguration(
         behavior: SmoothScrollBehavior(),
         child: SingleChildScrollView(
@@ -776,26 +906,14 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
           tablet: 16.0,
           desktop: 20.0,
         )),
-        _buildInputField(
-          context,
-          controller: _lunchController,
-          label: 'Lunch',
-          icon: Icons.lunch_dining,
-          maxLines: 2,
-        ),
+        _buildLunchCheckbox(context),
         SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
           context,
           mobile: 12.0,
           tablet: 16.0,
           desktop: 20.0,
         )),
-        _buildInputField(
-          context,
-          controller: _dinnerController,
-          label: 'Dinner',
-          icon: Icons.dinner_dining,
-          maxLines: 2,
-        ),
+        _buildDinnerCheckbox(context),
       ],
     );
   }
@@ -858,41 +976,14 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
           tablet: 16.0,
           desktop: 20.0,
         )),
-        Row(
-          children: [
-            Expanded(
-              child: _buildInputField(
-                context,
-                controller: _lunchController,
-                label: 'Lunch',
-                icon: Icons.lunch_dining,
-                maxLines: 2,
-              ),
-            ),
-            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
-              context,
-              mobile: 12.0,
-              tablet: 16.0,
-              desktop: 20.0,
-            )),
-            Expanded(
-              child: Container(), // Empty space for alignment
-            ),
-          ],
-        ),
+        _buildLunchCheckbox(context),
         SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
           context,
           mobile: 12.0,
           tablet: 16.0,
           desktop: 20.0,
         )),
-        _buildInputField(
-          context,
-          controller: _dinnerController,
-          label: 'Dinner',
-          icon: Icons.dinner_dining,
-          maxLines: 2,
-        ),
+        _buildDinnerCheckbox(context),
       ],
     );
   }
@@ -964,43 +1055,14 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
           tablet: 16.0,
           desktop: 20.0,
         )),
-        Row(
-          children: [
-            Expanded(
-              child: _buildInputField(
-                context,
-                controller: _lunchController,
-                label: 'Lunch',
-                icon: Icons.lunch_dining,
-                maxLines: 2,
-              ),
-            ),
-            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
-              context,
-              mobile: 12.0,
-              tablet: 16.0,
-              desktop: 20.0,
-            )),
-            Expanded(
-              child: _buildInputField(
-                context,
-                controller: _dinnerController,
-                label: 'Dinner',
-                icon: Icons.dinner_dining,
-                maxLines: 2,
-              ),
-            ),
-            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
-              context,
-              mobile: 12.0,
-              tablet: 16.0,
-              desktop: 20.0,
-            )),
-            Expanded(
-              child: Container(), // Empty space for alignment
-            ),
-          ],
-        ),
+        _buildLunchCheckbox(context),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+          context,
+          mobile: 12.0,
+          tablet: 16.0,
+          desktop: 20.0,
+        )),
+        _buildDinnerCheckbox(context),
       ],
     );
   }
@@ -1560,6 +1622,148 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     );
   }
 
+  Widget _buildLunchCheckbox(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: ResponsiveHelper.getResponsiveValue(
+              context,
+              mobile: 56.0,
+              tablet: 60.0,
+              desktop: 64.0,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Checkbox(
+                value: _isLunchSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isLunchSelected = value ?? false;
+                    if (!_isLunchSelected) {
+                      // Clear all lunch details when unchecked
+                      _lunchStartTimeController.clear();
+                      _lunchEndTimeController.clear();
+                      _lunchPersonsController.clear();
+                      _lunchExtraPersonsController.clear();
+                      _lunchPricePerPersonController.clear();
+                      _lunchTotal = 0.0;
+                    }
+                  });
+                },
+                activeColor: const Color(0xFF8A8AFF),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.lunch_dining, color: const Color(0xFF8A8AFF), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Lunch',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 14.0,
+                    tablet: 15.0,
+                    desktop: 16.0,
+                  ),
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_isLunchSelected) ...[
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+            context,
+            mobile: 12.0,
+            tablet: 16.0,
+            desktop: 20.0,
+          )),
+          _buildLunchDetails(context),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDinnerCheckbox(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: ResponsiveHelper.getResponsiveValue(
+              context,
+              mobile: 56.0,
+              tablet: 60.0,
+              desktop: 64.0,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Checkbox(
+                value: _isDinnerSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isDinnerSelected = value ?? false;
+                    if (!_isDinnerSelected) {
+                      // Clear all dinner details when unchecked
+                      _dinnerStartTimeController.clear();
+                      _dinnerEndTimeController.clear();
+                      _dinnerPersonsController.clear();
+                      _dinnerExtraPersonsController.clear();
+                      _dinnerPricePerPersonController.clear();
+                      _dinnerTotal = 0.0;
+                    }
+                  });
+                },
+                activeColor: const Color(0xFF8A8AFF),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.dinner_dining, color: const Color(0xFF8A8AFF), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Dinner',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 14.0,
+                    tablet: 15.0,
+                    desktop: 16.0,
+                  ),
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_isDinnerSelected) ...[
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+            context,
+            mobile: 12.0,
+            tablet: 16.0,
+            desktop: 20.0,
+          )),
+          _buildDinnerDetails(context),
+        ],
+      ],
+    );
+  }
+
   Widget _buildNashtaDetails(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1809,6 +2013,504 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     );
   }
 
+  Widget _buildLunchDetails(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        final isTablet = constraints.maxWidth < 1024;
+        
+        return Container(
+          padding: EdgeInsets.all(ResponsiveHelper.getResponsiveValue(
+            context,
+            mobile: 12.0,
+            tablet: 16.0,
+            desktop: 20.0,
+          )),
+          decoration: BoxDecoration(
+            color: Colors.orange[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Lunch Details',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 16.0,
+                    tablet: 18.0,
+                    desktop: 20.0,
+                  ),
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF2D3748),
+                ),
+              ),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Time range - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildTimeField(
+                  context,
+                  controller: _lunchStartTimeController,
+                  label: 'Start Time',
+                  onTap: _selectLunchStartTime,
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildTimeField(
+                  context,
+                  controller: _lunchEndTimeController,
+                  label: 'End Time',
+                  onTap: _selectLunchEndTime,
+                ),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        controller: _lunchStartTimeController,
+                        label: 'Start Time',
+                        onTap: _selectLunchStartTime,
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Text(
+                      'to',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14.0,
+                          tablet: 15.0,
+                          desktop: 16.0,
+                        ),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        controller: _lunchEndTimeController,
+                        label: 'End Time',
+                        onTap: _selectLunchEndTime,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Persons and price - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildInputField(
+                  context,
+                  controller: _lunchPersonsController,
+                  label: 'Number of Persons',
+                  icon: Icons.people,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (_isLunchSelected && (value?.isEmpty == true || int.tryParse(value ?? '') == null)) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildInputField(
+                  context,
+                  controller: _lunchExtraPersonsController,
+                  label: 'Extra Persons',
+                  icon: Icons.person_add,
+                  keyboardType: TextInputType.number,
+                ),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _lunchPersonsController,
+                        label: 'Number of Persons',
+                        icon: Icons.people,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (_isLunchSelected && (value?.isEmpty == true || int.tryParse(value ?? '') == null)) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _lunchExtraPersonsController,
+                        label: 'Extra Persons',
+                        icon: Icons.person_add,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Price and total - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildInputField(
+                  context,
+                  controller: _lunchPricePerPersonController,
+                  label: 'Price per Person (₹)',
+                  icon: Icons.currency_rupee,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (_isLunchSelected && (value?.isEmpty == true || double.tryParse(value ?? '') == null)) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildLunchTotalDisplay(context),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _lunchPricePerPersonController,
+                        label: 'Price per Person (₹)',
+                        icon: Icons.currency_rupee,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (_isLunchSelected && (value?.isEmpty == true || double.tryParse(value ?? '') == null)) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildLunchTotalDisplay(context),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDinnerDetails(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        final isTablet = constraints.maxWidth < 1024;
+        
+        return Container(
+          padding: EdgeInsets.all(ResponsiveHelper.getResponsiveValue(
+            context,
+            mobile: 12.0,
+            tablet: 16.0,
+            desktop: 20.0,
+          )),
+          decoration: BoxDecoration(
+            color: Colors.purple[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.purple.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Dinner Details',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(
+                    context,
+                    mobile: 16.0,
+                    tablet: 18.0,
+                    desktop: 20.0,
+                  ),
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF2D3748),
+                ),
+              ),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Time range - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildTimeField(
+                  context,
+                  controller: _dinnerStartTimeController,
+                  label: 'Start Time',
+                  onTap: _selectDinnerStartTime,
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildTimeField(
+                  context,
+                  controller: _dinnerEndTimeController,
+                  label: 'End Time',
+                  onTap: _selectDinnerEndTime,
+                ),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        controller: _dinnerStartTimeController,
+                        label: 'Start Time',
+                        onTap: _selectDinnerStartTime,
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Text(
+                      'to',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(
+                          context,
+                          mobile: 14.0,
+                          tablet: 15.0,
+                          desktop: 16.0,
+                        ),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildTimeField(
+                        context,
+                        controller: _dinnerEndTimeController,
+                        label: 'End Time',
+                        onTap: _selectDinnerEndTime,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Persons and price - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildInputField(
+                  context,
+                  controller: _dinnerPersonsController,
+                  label: 'Number of Persons',
+                  icon: Icons.people,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (_isDinnerSelected && (value?.isEmpty == true || int.tryParse(value ?? '') == null)) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildInputField(
+                  context,
+                  controller: _dinnerExtraPersonsController,
+                  label: 'Extra Persons',
+                  icon: Icons.person_add,
+                  keyboardType: TextInputType.number,
+                ),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _dinnerPersonsController,
+                        label: 'Number of Persons',
+                        icon: Icons.people,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (_isDinnerSelected && (value?.isEmpty == true || int.tryParse(value ?? '') == null)) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _dinnerExtraPersonsController,
+                        label: 'Extra Persons',
+                        icon: Icons.person_add,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Price and total - responsive layout
+              if (isMobile) ...[
+                // Mobile: Stack vertically
+                _buildInputField(
+                  context,
+                  controller: _dinnerPricePerPersonController,
+                  label: 'Price per Person (₹)',
+                  icon: Icons.currency_rupee,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (_isDinnerSelected && (value?.isEmpty == true || double.tryParse(value ?? '') == null)) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                  context,
+                  mobile: 8.0,
+                  tablet: 12.0,
+                  desktop: 16.0,
+                )),
+                _buildDinnerTotalDisplay(context),
+              ] else ...[
+                // Tablet/Desktop: Side by side
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInputField(
+                        context,
+                        controller: _dinnerPricePerPersonController,
+                        label: 'Price per Person (₹)',
+                        icon: Icons.currency_rupee,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (_isDinnerSelected && (value?.isEmpty == true || double.tryParse(value ?? '') == null)) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(
+                      context,
+                      mobile: 8.0,
+                      tablet: 12.0,
+                      desktop: 16.0,
+                    )),
+                    Expanded(
+                      child: _buildDinnerTotalDisplay(context),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTotalDisplay(BuildContext context) {
     return Container(
       height: ResponsiveHelper.getResponsiveValue(
@@ -1853,6 +2555,114 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                 desktop: 16.0,
               ),
               color: Colors.green[700],
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLunchTotalDisplay(BuildContext context) {
+    return Container(
+      height: ResponsiveHelper.getResponsiveValue(
+        context,
+        mobile: 56.0,
+        tablet: 60.0,
+        desktop: 64.0,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Total',
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 10.0,
+                tablet: 11.0,
+                desktop: 12.0,
+              ),
+              color: Colors.orange[700],
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            '₹${_lunchTotal.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 13.0,
+                tablet: 14.0,
+                desktop: 16.0,
+              ),
+              color: Colors.orange[700],
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDinnerTotalDisplay(BuildContext context) {
+    return Container(
+      height: ResponsiveHelper.getResponsiveValue(
+        context,
+        mobile: 56.0,
+        tablet: 60.0,
+        desktop: 64.0,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.purple[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.purple.withOpacity(0.3)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Total',
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 10.0,
+                tablet: 11.0,
+                desktop: 12.0,
+              ),
+              color: Colors.purple[700],
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            '₹${_dinnerTotal.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(
+                context,
+                mobile: 13.0,
+                tablet: 14.0,
+                desktop: 16.0,
+              ),
+              color: Colors.purple[700],
               fontWeight: FontWeight.bold,
             ),
             maxLines: 1,

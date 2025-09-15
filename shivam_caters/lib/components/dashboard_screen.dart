@@ -15,6 +15,10 @@ class DashboardScreen extends StatelessWidget {
         ? 'Dashboard' 
         : 'Shivam Caters - Management Dashboard',
       currentScreen: 'dashboard',
+      statusMessage: 'System running smoothly',
+      totalOrders: 127,
+      pendingOrders: 8,
+      completedOrders: 119,
       child: SingleChildScrollView(
         padding: ResponsiveHelper.getResponsivePadding(context),
         child: Column(

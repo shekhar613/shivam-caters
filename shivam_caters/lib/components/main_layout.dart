@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
+import 'status_bar.dart';
 import '../utils/responsive_helper.dart';
 
 class MainLayout extends StatefulWidget {
@@ -7,6 +8,11 @@ class MainLayout extends StatefulWidget {
   final String title;
   final String currentScreen;
   final VoidCallback onPressed;
+  final String? statusMessage;
+  final bool isLoading;
+  final int? totalOrders;
+  final int? pendingOrders;
+  final int? completedOrders;
 
   const MainLayout({
     super.key,
@@ -14,6 +20,11 @@ class MainLayout extends StatefulWidget {
     required this.title,
     required this.currentScreen,
     required this.onPressed,
+    this.statusMessage,
+    this.isLoading = false,
+    this.totalOrders,
+    this.pendingOrders,
+    this.completedOrders,
   });
 
   @override
@@ -84,18 +95,33 @@ class _MainLayoutState extends State<MainLayout> {
 ),
 
                       
-                      // Title
+                      // Logo and Title
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 16),
-                          child: Text(
-                            widget.title,
-                            style: TextStyle(
-                              fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000047),
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              // Logo
+                              Image.asset(
+                                'assets/logo.png',
+                                width: isMobile ? 24 : (isTablet ? 28 : 32),
+                                height: isMobile ? 24 : (isTablet ? 28 : 32),
+                                fit: BoxFit.contain,
+                              ),
+                              SizedBox(width: isMobile ? 8 : 12),
+                              // Title
+                              Expanded(
+                                child: Text(
+                                  widget.title,
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF000047),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -131,6 +157,16 @@ class _MainLayoutState extends State<MainLayout> {
                 // Content
                 Expanded(
                   child: widget.child,
+                ),
+                
+                // Status Bar
+                StatusBar(
+                  currentScreen: widget.currentScreen,
+                  statusMessage: widget.statusMessage,
+                  isLoading: widget.isLoading,
+                  totalOrders: widget.totalOrders,
+                  pendingOrders: widget.pendingOrders,
+                  completedOrders: widget.completedOrders,
                 ),
               ],
             ),
