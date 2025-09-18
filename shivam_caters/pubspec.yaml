@@ -38,13 +38,13 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.39
   path_provider: ^2.1.5
   path: ^1.9.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   drift_dev: ^2.28.0
   build_runner: ^2.4.6
-  flutter_launcher_icons: ^0.13.1
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -65,7 +65,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/logo.png
+    - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -94,15 +94,3 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 # Flutter Launcher Icons configuration
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  windows:
-    generate: true
-    image_path: "assets/logo.png"
-    icon_size: 48
-  web:
-    generate: true
-    image_path: "assets/logo.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"

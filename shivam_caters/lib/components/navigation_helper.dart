@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shivam_caters/database/dao/order_dao.dart';
+import 'package:shivam_caters/database/db_instance.dart';
 import 'dashboard_screen.dart';
 import 'order_management_screen.dart';
 import 'add_order_screen.dart';
@@ -14,6 +16,12 @@ class NavigationHelper {
     );
   }
 
+  // static Future<dynamic> navigateToOrders(BuildContext context) {
+  //   return Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) =>  Ordertest()),
+  //   );
+  // }
   static Future<dynamic> navigateToOrders(BuildContext context) {
     return Navigator.push(
       context,
@@ -22,9 +30,11 @@ class NavigationHelper {
   }
 
   static Future<dynamic> navigateToAddOrder(BuildContext context) {
+
+     OrderDao od = OrderDao(db) ;
     return Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddOrderScreen()),
+      MaterialPageRoute(builder: (context) => AddOrderScreen()),
     );
   }
 
