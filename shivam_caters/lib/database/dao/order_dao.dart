@@ -22,8 +22,8 @@ class OrderDao extends DatabaseAccessor<AppDatabase> with _$OrderDaoMixin {
   }
 
   // ---------------- FETCH METHODS ----------------
-  Future<List<Order>> getAllOrders() {
-    return select(db.orders).get();
+  Stream<List<Order>> watchAllOrders() {
+    return select(db.orders).watch();
   }
 
   Future<List<OrderMeal>> getMealsForOrder(int orderId) {
@@ -33,6 +33,10 @@ class OrderDao extends DatabaseAccessor<AppDatabase> with _$OrderDaoMixin {
   Future<List<OrderDishe>> getDishesForOrder(int orderId) {
     return (select(db.orderDishes)..where((d) => d.orderId.equals(orderId))).get();
   }
+Future<void> updateOrderStatus(int orderId, String newStatus) async {
+  await (update(db.orders)..where((tbl) => tbl.id.equals(orderId)))
+      .write(OrdersCompanion(status: Value(newStatus)));
+}
 
   // ---------------- FULL ORDER (Invoice) ----------------
   Future<Map<String, dynamic>> getFullOrderDetails(int orderId) async {

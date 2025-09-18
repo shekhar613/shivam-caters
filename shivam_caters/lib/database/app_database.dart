@@ -50,6 +50,7 @@ class Orders extends Table {
   RealColumn get advancePayment => real().withDefault(Constant(0.0))();
   TextColumn get paymentMode => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get status => text()();
 }
 
 // Order Meals table

@@ -1,4 +1,8 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:shivam_caters/database/app_database.dart';
+import 'package:shivam_caters/database/dao/order_dao.dart';
+import 'package:shivam_caters/database/db_instance.dart';
 import '../utils/responsive_helper.dart';
 import 'main_layout.dart';
 
@@ -25,7 +29,9 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _customerContactController = TextEditingController();
   final _eventNameController = TextEditingController();
   final _customerAddressController = TextEditingController();
-  
+  DateTime _eventDate = DateTime.now();
+  DateTime _bookingDate = DateTime.now();
+  OrderDao orderDao = OrderDao(db);
   // Event Details Controllers
   final _eventPlaceController = TextEditingController();
   final _decorationController = TextEditingController();
@@ -39,8 +45,6 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _paymentMethodController = TextEditingController();
   final _notesController = TextEditingController();
   
-  DateTime _eventDate = DateTime.now();
-  DateTime _bookingDate = DateTime.now();
   
   // Event place dropdown
   String _selectedEventPlace = '';
@@ -83,7 +87,7 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _dinnerExtraPersonsController = TextEditingController();
   final _dinnerPricePerPersonController = TextEditingController();
   double _dinnerTotal = 0.0;
-
+  double grandTotal = 0.0;
   @override
   void initState() {
     super.initState();
@@ -92,16 +96,20 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
     _nashtaPersonsController.addListener(_calculateNashtaTotal);
     _nashtaExtraPersonsController.addListener(_calculateNashtaTotal);
     _nashtaPricePerPersonController.addListener(_calculateNashtaTotal);
+    _nashtaPricePerPersonController.addListener(_calculateGrandTotal);
     
     // Add listeners to lunch controllers for automatic calculation
     _lunchPersonsController.addListener(_calculateLunchTotal);
     _lunchExtraPersonsController.addListener(_calculateLunchTotal);
     _lunchPricePerPersonController.addListener(_calculateLunchTotal);
+    _lunchPricePerPersonController.addListener(_calculateGrandTotal);
     
     // Add listeners to dinner controllers for automatic calculation
     _dinnerPersonsController.addListener(_calculateDinnerTotal);
     _dinnerExtraPersonsController.addListener(_calculateDinnerTotal);
     _dinnerPricePerPersonController.addListener(_calculateDinnerTotal);
+    _dinnerPricePerPersonController.addListener(_calculateGrandTotal);
+_calculateGrandTotal();
   }
 
   @override
@@ -282,92 +290,93 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
       _dinnerTotal = (persons + extraPersons) * pricePerPerson;
     });
   }
+  void _calculateGrandTotal() {
+    
+  setState(() {
+    grandTotal = _dinnerTotal + _lunchTotal + _nashtaTotal;
+    _totalAmountController.text = grandTotal.toStringAsFixed(2);
+  });
 
-  void _submitOrder() {
-    if (_formKey.currentState!.validate()) {
-      // Create order data in the required JSON structure
-      final orderData = {
-        "Customer details": {
-          "Name": _customerNameController.text,
-          "Contact": _customerContactController.text,
-          "Event name": _eventNameController.text,
-          "Event date": "${_eventDate.day}/${_eventDate.month}/${_eventDate.year}",
-          "Booking date": "${_bookingDate.day}/${_bookingDate.month}/${_bookingDate.year}",
-          "Address": _customerAddressController.text,
-        },
-        "Event details": {
-          "Event place": _selectedEventPlace.isEmpty ? _eventPlaceController.text : _selectedEventPlace,
-          "Decoration": _decorationController.text,
-          "Nashta": _isNashtaSelected ? {
-            "Selected": true,
-            "Start Time": _nashtaStartTimeController.text,
-            "End Time": _nashtaEndTimeController.text,
-            "Number of Persons": _nashtaPersonsController.text,
-            "Extra Persons": _nashtaExtraPersonsController.text,
-            "Price per Person": _nashtaPricePerPersonController.text,
-            "Total": _nashtaTotal.toStringAsFixed(2),
-          } : {"Selected": false},
-          "Lunch": _isLunchSelected ? {
-            "Selected": true,
-            "Start Time": _lunchStartTimeController.text,
-            "End Time": _lunchEndTimeController.text,
-            "Number of Persons": _lunchPersonsController.text,
-            "Extra Persons": _lunchExtraPersonsController.text,
-            "Price per Person": _lunchPricePerPersonController.text,
-            "Total": _lunchTotal.toStringAsFixed(2),
-          } : {"Selected": false},
-          "Dinner": _isDinnerSelected ? {
-            "Selected": true,
-            "Start Time": _dinnerStartTimeController.text,
-            "End Time": _dinnerEndTimeController.text,
-            "Number of Persons": _dinnerPersonsController.text,
-            "Extra Persons": _dinnerExtraPersonsController.text,
-            "Price per Person": _dinnerPricePerPersonController.text,
-            "Total": _dinnerTotal.toStringAsFixed(2),
-          } : {"Selected": false},
-        },
-        "Billing details": {
-          "Total Amount": _totalAmountController.text,
-          "Advance Payment": _advancePaymentController.text,
-          "Payment Method": _paymentMethodController.text,
-          "Notes": _notesController.text,
-        }
-      };
-      
-      // Show success dialog with order details
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Order Created Successfully!'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Customer: ${_customerNameController.text}'),
-                  Text('Event: ${_eventNameController.text}'),
-                  Text('Event Date: ${_eventDate.day}/${_eventDate.month}/${_eventDate.year}'),
-                  Text('Total Amount: ₹${_totalAmountController.text}'),
-                  const SizedBox(height: 8),
-                  const Text('Order data has been prepared in the required format.'),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
+  }
+
+  int _parse(String val) => int.tryParse(val) ?? 0;
+  double _parseDouble(String val) => double.tryParse(val) ?? 0.0;
+
+  // ----------- Save Order -----------
+  Future<void> _saveOrder() async {
+    try {
+      // 1. Insert Order
+      final orderId = await orderDao.insertOrder(
+        OrdersCompanion.insert(
+          customerName: _customerNameController.text,
+          contactNumber: _customerContactController.text,
+          eventName: _eventNameController.text,
+          eventDate: _eventDate,
+          bookingDate: _bookingDate ,
+          eventPlace: "Hall 1", // You can add dropdown later
+          advancePayment: Value(_parseDouble(_advancePaymentController.text)),
+          totalAmount: Value(grandTotal),
+          paymentMode: Value(_paymentMethodController.text ),
+          notes: Value(_notesController.text),
+          status: "Confirmed",
+        ),
+      );
+
+      // 2. Insert Meals (if selected)
+      if (_isNashtaSelected) {
+        await orderDao.insertOrderMeal(
+          OrderMealsCompanion.insert(
+            orderId: orderId,
+            mealType: "Breakfast",
+            startTime: DateTime.now(),
+            endTime: DateTime.now(),
+            numberOfPersons: _parse(_nashtaPersonsController.text),
+            pricePerPerson: _parseDouble(_nashtaPricePerPersonController.text),
+            totalAmount: _nashtaTotal,
+          ),
+        );
+      }
+
+      if (_isLunchSelected) {
+        await orderDao.insertOrderMeal(
+          OrderMealsCompanion.insert(
+            orderId: orderId,
+            mealType: "Lunch",
+            startTime: DateTime.now(),
+            endTime: DateTime.now(),
+            numberOfPersons: _parse(_lunchPersonsController.text),
+            pricePerPerson: _parseDouble(_lunchPricePerPersonController.text),
+            totalAmount: _lunchTotal,
+          ),
+        );
+      }
+
+      if (_isDinnerSelected) {
+        await orderDao.insertOrderMeal(
+          OrderMealsCompanion.insert(
+            orderId: orderId,
+            mealType: "Dinner",
+            startTime: DateTime.now(),
+            endTime: DateTime.now(),
+            numberOfPersons: _parse(_dinnerPersonsController.text),
+            pricePerPerson: _parseDouble(_dinnerPricePerPersonController.text),
+            totalAmount: _dinnerTotal,
+          ),
+        );
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Order saved successfully!")),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving order: $e")),
       );
     }
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -1330,7 +1339,7 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
               )),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _submitOrder,
+                  onPressed: _saveOrder,
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Create Order'),
                   style: ElevatedButton.styleFrom(

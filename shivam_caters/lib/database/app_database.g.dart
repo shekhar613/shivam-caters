@@ -1017,6 +1017,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1031,6 +1040,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     advancePayment,
     paymentMode,
     notes,
+    status,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1146,6 +1156,14 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
     return context;
   }
 
@@ -1203,6 +1221,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
     );
   }
 
@@ -1225,6 +1247,7 @@ class Order extends DataClass implements Insertable<Order> {
   final double advancePayment;
   final String? paymentMode;
   final String? notes;
+  final String status;
   const Order({
     required this.id,
     required this.customerName,
@@ -1238,6 +1261,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.advancePayment,
     this.paymentMode,
     this.notes,
+    required this.status,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1260,6 +1284,7 @@ class Order extends DataClass implements Insertable<Order> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['status'] = Variable<String>(status);
     return map;
   }
 
@@ -1283,6 +1308,7 @@ class Order extends DataClass implements Insertable<Order> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      status: Value(status),
     );
   }
 
@@ -1304,6 +1330,7 @@ class Order extends DataClass implements Insertable<Order> {
       advancePayment: serializer.fromJson<double>(json['advancePayment']),
       paymentMode: serializer.fromJson<String?>(json['paymentMode']),
       notes: serializer.fromJson<String?>(json['notes']),
+      status: serializer.fromJson<String>(json['status']),
     );
   }
   @override
@@ -1322,6 +1349,7 @@ class Order extends DataClass implements Insertable<Order> {
       'advancePayment': serializer.toJson<double>(advancePayment),
       'paymentMode': serializer.toJson<String?>(paymentMode),
       'notes': serializer.toJson<String?>(notes),
+      'status': serializer.toJson<String>(status),
     };
   }
 
@@ -1338,6 +1366,7 @@ class Order extends DataClass implements Insertable<Order> {
     double? advancePayment,
     Value<String?> paymentMode = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    String? status,
   }) => Order(
     id: id ?? this.id,
     customerName: customerName ?? this.customerName,
@@ -1353,6 +1382,7 @@ class Order extends DataClass implements Insertable<Order> {
     advancePayment: advancePayment ?? this.advancePayment,
     paymentMode: paymentMode.present ? paymentMode.value : this.paymentMode,
     notes: notes.present ? notes.value : this.notes,
+    status: status ?? this.status,
   );
   Order copyWithCompanion(OrdersCompanion data) {
     return Order(
@@ -1384,6 +1414,7 @@ class Order extends DataClass implements Insertable<Order> {
           ? data.paymentMode.value
           : this.paymentMode,
       notes: data.notes.present ? data.notes.value : this.notes,
+      status: data.status.present ? data.status.value : this.status,
     );
   }
 
@@ -1401,7 +1432,8 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('totalAmount: $totalAmount, ')
           ..write('advancePayment: $advancePayment, ')
           ..write('paymentMode: $paymentMode, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('status: $status')
           ..write(')'))
         .toString();
   }
@@ -1420,6 +1452,7 @@ class Order extends DataClass implements Insertable<Order> {
     advancePayment,
     paymentMode,
     notes,
+    status,
   );
   @override
   bool operator ==(Object other) =>
@@ -1436,7 +1469,8 @@ class Order extends DataClass implements Insertable<Order> {
           other.totalAmount == this.totalAmount &&
           other.advancePayment == this.advancePayment &&
           other.paymentMode == this.paymentMode &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.status == this.status);
 }
 
 class OrdersCompanion extends UpdateCompanion<Order> {
@@ -1452,6 +1486,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<double> advancePayment;
   final Value<String?> paymentMode;
   final Value<String?> notes;
+  final Value<String> status;
   const OrdersCompanion({
     this.id = const Value.absent(),
     this.customerName = const Value.absent(),
@@ -1465,6 +1500,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.advancePayment = const Value.absent(),
     this.paymentMode = const Value.absent(),
     this.notes = const Value.absent(),
+    this.status = const Value.absent(),
   });
   OrdersCompanion.insert({
     this.id = const Value.absent(),
@@ -1479,12 +1515,14 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.advancePayment = const Value.absent(),
     this.paymentMode = const Value.absent(),
     this.notes = const Value.absent(),
+    required String status,
   }) : customerName = Value(customerName),
        contactNumber = Value(contactNumber),
        eventName = Value(eventName),
        eventDate = Value(eventDate),
        bookingDate = Value(bookingDate),
-       eventPlace = Value(eventPlace);
+       eventPlace = Value(eventPlace),
+       status = Value(status);
   static Insertable<Order> custom({
     Expression<int>? id,
     Expression<String>? customerName,
@@ -1498,6 +1536,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<double>? advancePayment,
     Expression<String>? paymentMode,
     Expression<String>? notes,
+    Expression<String>? status,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1512,6 +1551,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (advancePayment != null) 'advance_payment': advancePayment,
       if (paymentMode != null) 'payment_mode': paymentMode,
       if (notes != null) 'notes': notes,
+      if (status != null) 'status': status,
     });
   }
 
@@ -1528,6 +1568,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<double>? advancePayment,
     Value<String?>? paymentMode,
     Value<String?>? notes,
+    Value<String>? status,
   }) {
     return OrdersCompanion(
       id: id ?? this.id,
@@ -1542,6 +1583,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       advancePayment: advancePayment ?? this.advancePayment,
       paymentMode: paymentMode ?? this.paymentMode,
       notes: notes ?? this.notes,
+      status: status ?? this.status,
     );
   }
 
@@ -1584,6 +1626,9 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
     return map;
   }
 
@@ -1601,7 +1646,8 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('totalAmount: $totalAmount, ')
           ..write('advancePayment: $advancePayment, ')
           ..write('paymentMode: $paymentMode, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('status: $status')
           ..write(')'))
         .toString();
   }
@@ -2535,6 +2581,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OrdersTable orders = $OrdersTable(this);
   late final $OrderMealsTable orderMeals = $OrderMealsTable(this);
   late final $OrderDishesTable orderDishes = $OrderDishesTable(this);
+  late final OrderDao orderDao = OrderDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3005,6 +3052,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       Value<double> advancePayment,
       Value<String?> paymentMode,
       Value<String?> notes,
+      required String status,
     });
 typedef $$OrdersTableUpdateCompanionBuilder =
     OrdersCompanion Function({
@@ -3020,6 +3068,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<double> advancePayment,
       Value<String?> paymentMode,
       Value<String?> notes,
+      Value<String> status,
     });
 
 final class $$OrdersTableReferences
@@ -3129,6 +3178,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3251,6 +3305,11 @@ class $$OrdersTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OrdersTableAnnotationComposer
@@ -3313,6 +3372,9 @@ class $$OrdersTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
 
   Expression<T> orderMealsRefs<T extends Object>(
     Expression<T> Function($$OrderMealsTableAnnotationComposer a) f,
@@ -3405,6 +3467,7 @@ class $$OrdersTableTableManager
                 Value<double> advancePayment = const Value.absent(),
                 Value<String?> paymentMode = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String> status = const Value.absent(),
               }) => OrdersCompanion(
                 id: id,
                 customerName: customerName,
@@ -3418,6 +3481,7 @@ class $$OrdersTableTableManager
                 advancePayment: advancePayment,
                 paymentMode: paymentMode,
                 notes: notes,
+                status: status,
               ),
           createCompanionCallback:
               ({
@@ -3433,6 +3497,7 @@ class $$OrdersTableTableManager
                 Value<double> advancePayment = const Value.absent(),
                 Value<String?> paymentMode = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                required String status,
               }) => OrdersCompanion.insert(
                 id: id,
                 customerName: customerName,
@@ -3446,6 +3511,7 @@ class $$OrdersTableTableManager
                 advancePayment: advancePayment,
                 paymentMode: paymentMode,
                 notes: notes,
+                status: status,
               ),
           withReferenceMapper: (p0) => p0
               .map(
