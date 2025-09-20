@@ -20,8 +20,20 @@ class NavigationHelper {
     );
   }
 
+<<<<<<< Updated upstream
   static void navigateToBilling(BuildContext context) {
     Navigator.push(
+=======
+  static Future<dynamic> navigateToAddOrder(BuildContext context) {
+    return Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddOrderScreen()),
+    );
+  }
+
+  static Future<dynamic> navigateToBilling(BuildContext context) {
+    return Navigator.push(
+>>>>>>> Stashed changes
       context,
       MaterialPageRoute(builder: (context) => const BillingScreen()),
     );
