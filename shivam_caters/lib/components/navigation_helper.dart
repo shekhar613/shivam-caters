@@ -29,39 +29,31 @@ class NavigationHelper {
     );
   }
 
-
-  static void navigateToBilling(BuildContext context) {
-    Navigator.push(
-
   static Future<dynamic> navigateToAddOrder(BuildContext context) {
-
-  
-
-     OrderDao od = OrderDao(db) ;
-
     return Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddOrderScreen()),
+      MaterialPageRoute(builder: (context) => const AddOrderScreen()),
     );
   }
 
-  static Future<dynamic> navigateToBilling(BuildContext context) {
-    return Navigator.push(
-
-
+   static void navigateToBilling(BuildContext context) {
+     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const BillingScreen()),
+      MaterialPageRoute(builder: (context) => BillingScreen()),
     );
-  }
 
-  static Future<dynamic> navigateToMenuManagement(BuildContext context) {
+ 
+  }
+   
+
+   static Future<dynamic> navigateToMenuManagement(BuildContext context) {
     return Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const MenuManagementScreen()),
     );
   }
 
-  static Future<dynamic> navigateToInventory(BuildContext context) {
+  static  Future<dynamic> navigateToInventory(BuildContext context) {
     return Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const InventoryScreen()),
