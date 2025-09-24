@@ -4,6 +4,9 @@ import 'package:shivam_caters/database/app_database.dart';
 import 'package:shivam_caters/database/dao/order_dao.dart';
 import 'package:shivam_caters/database/db_instance.dart';
 import '../utils/responsive_helper.dart';
+
+import '../utils/db_functions.dart';
+
 import 'main_layout.dart';
 
 class SmoothScrollBehavior extends ScrollBehavior {
@@ -32,6 +35,10 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   DateTime _eventDate = DateTime.now();
   DateTime _bookingDate = DateTime.now();
   OrderDao orderDao = OrderDao(db);
+
+  DbFunctions dbf = DbFunctions(db);
+
+
   // Event Details Controllers
   final _eventPlaceController = TextEditingController();
   final _decorationController = TextEditingController();
@@ -88,6 +95,12 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _dinnerPricePerPersonController = TextEditingController();
   double _dinnerTotal = 0.0;
   double grandTotal = 0.0;
+
+  // Menu selection for each meal type
+  List<Map<String, dynamic>> _selectedNashtaDishes = [];
+  List<Map<String, dynamic>> _selectedLunchDishes = [];
+  List<Map<String, dynamic>> _selectedDinnerDishes = [];
+
   @override
   void initState() {
     super.initState();
@@ -302,6 +315,48 @@ _calculateGrandTotal();
   int _parse(String val) => int.tryParse(val) ?? 0;
   double _parseDouble(String val) => double.tryParse(val) ?? 0.0;
 
+  // Menu selection methods
+  Future<void> _showMenuSelection(BuildContext context, String mealType) async {
+    List<Map<String, dynamic>> currentSelection = [];
+    switch (mealType) {
+      case 'nashta':
+        currentSelection = List.from(_selectedNashtaDishes);
+        break;
+      case 'lunch':
+        currentSelection = List.from(_selectedLunchDishes);
+        break;
+      case 'dinner':
+        currentSelection = List.from(_selectedDinnerDishes);
+        break;
+    }
+
+    final result = await showDialog<List<Map<String, dynamic>>>(
+      context: context,
+      builder: (context) => MenuSelectionDialog(
+        mealType: mealType,
+        selectedDishes: currentSelection,
+        dbf: dbf,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        switch (mealType) {
+          case 'nashta':
+            _selectedNashtaDishes = result;
+            break;
+          case 'lunch':
+            _selectedLunchDishes = result;
+            break;
+          case 'dinner':
+            _selectedDinnerDishes = result;
+            break;
+        }
+      });
+    }
+  }
+
+
   // ----------- Save Order -----------
   Future<void> _saveOrder() async {
     try {
@@ -335,6 +390,18 @@ _calculateGrandTotal();
             totalAmount: _nashtaTotal,
           ),
         );
+        // Insert selected nashta dishes
+        for (var dish in _selectedNashtaDishes) {
+          await orderDao.insertOrderDish(
+            OrderDishesCompanion.insert(
+              orderId: orderId,
+              dishName: dish['name'],
+              quantity: dish['quantity'],
+              price: dish['price'],
+            ),
+          );
+        }
+
       }
 
       if (_isLunchSelected) {
@@ -349,6 +416,20 @@ _calculateGrandTotal();
             totalAmount: _lunchTotal,
           ),
         );
+
+        
+        // Insert selected lunch dishes
+        for (var dish in _selectedLunchDishes) {
+          await orderDao.insertOrderDish(
+            OrderDishesCompanion.insert(
+              orderId: orderId,
+              dishName: dish['name'],
+              quantity: dish['quantity'],
+              price: dish['price'],
+            ),
+          );
+        }
+
       }
 
       if (_isDinnerSelected) {
@@ -363,6 +444,20 @@ _calculateGrandTotal();
             totalAmount: _dinnerTotal,
           ),
         );
+
+        
+        // Insert selected dinner dishes
+        for (var dish in _selectedDinnerDishes) {
+          await orderDao.insertOrderDish(
+            OrderDishesCompanion.insert(
+              orderId: orderId,
+              dishName: dish['name'],
+              quantity: dish['quantity'],
+              price: dish['price'],
+            ),
+          );
+        }
+
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2015,6 +2110,16 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Menu Selection Button
+              _buildMenuSelectionButton(context, 'nashta', _selectedNashtaDishes),
+
             ],
           ),
         );
@@ -2264,6 +2369,16 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Menu Selection Button
+              _buildMenuSelectionButton(context, 'lunch', _selectedLunchDishes),
+
             ],
           ),
         );
@@ -2513,12 +2628,75 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
+                context,
+                mobile: 12.0,
+                tablet: 16.0,
+                desktop: 20.0,
+              )),
+              // Menu Selection Button
+              _buildMenuSelectionButton(context, 'dinner', _selectedDinnerDishes),
             ],
           ),
         );
       },
     );
   }
+
+  Widget _buildMenuSelectionButton(BuildContext context, String mealType, List<Map<String, dynamic>> selectedDishes) {
+    return Container(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _showMenuSelection(context, mealType),
+        icon: Icon(
+          _getMealIcon(mealType),
+          size: 18,
+        ),
+        label: Text(
+          selectedDishes.isEmpty 
+            ? 'Select ${_capitalizeFirst(mealType)} Menu' 
+            : '${_capitalizeFirst(mealType)} Menu (${selectedDishes.length} items)',
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue[50],
+          foregroundColor: Colors.blue[700],
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.blue.withOpacity(0.3)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getMealIcon(String mealType) {
+    switch (mealType) {
+      case 'nashta':
+        return Icons.breakfast_dining;
+      case 'lunch':
+        return Icons.lunch_dining;
+      case 'dinner':
+        return Icons.dinner_dining;
+      default:
+        return Icons.restaurant;
+    }
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildTotalDisplay(BuildContext context) {
     return Container(
@@ -2828,3 +3006,279 @@ _calculateGrandTotal();
     );
   }
 }
+
+
+class MenuSelectionDialog extends StatefulWidget {
+  final String mealType;
+  final List<Map<String, dynamic>> selectedDishes;
+  final DbFunctions dbf;
+
+  const MenuSelectionDialog({
+    super.key,
+    required this.mealType,
+    required this.selectedDishes,
+    required this.dbf,
+  });
+
+  @override
+  State<MenuSelectionDialog> createState() => _MenuSelectionDialogState();
+}
+
+class _MenuSelectionDialogState extends State<MenuSelectionDialog> {
+  List<Map<String, dynamic>> _selectedDishes = [];
+  String _selectedCategory = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  final List<String> _categories = [
+    'All',
+    'Appetizers',
+    'Main Course',
+    'Breads',
+    'Desserts',
+    'Beverages',
+    'Salads',
+    'Soups',
+    'Snacks',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDishes = List.from(widget.selectedDishes);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: ResponsiveHelper.isMobile(context) ? double.infinity : 600,
+        height: ResponsiveHelper.isMobile(context) ? MediaQuery.of(context).size.height * 0.8 : 500,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(
+                  _getMealIcon(),
+                  color: const Color(0xFF8A8AFF),
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Select ${_capitalizeFirst(widget.mealType)} Menu',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3748),
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Search and Category Filter
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search dishes...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<String>(
+                  value: _selectedCategory,
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value!;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Dishes List
+            Expanded(
+              child: StreamBuilder<List<Dishe>>(
+                stream: widget.dbf.watchDishes(category: _selectedCategory == 'All' ? null : _selectedCategory),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text('No dishes available'),
+                    );
+                  }
+
+                  List<Dishe> dishes = snapshot.data!;
+                  
+                  // Apply search filter
+                  if (_searchQuery.isNotEmpty) {
+                    dishes = dishes.where((dish) =>
+                        dish.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                        (dish.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
+                    ).toList();
+                  }
+
+                  return ListView.builder(
+                    itemCount: dishes.length,
+                    itemBuilder: (context, index) {
+                      final dish = dishes[index];
+                      final isSelected = _selectedDishes.any((selected) => selected['id'] == dish.id);
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: Checkbox(
+                            value: isSelected,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedDishes.add({
+                                    'id': dish.id,
+                                    'name': dish.name,
+                                    'price': dish.price,
+                                    'quantity': 1,
+                                  });
+                                } else {
+                                  _selectedDishes.removeWhere((selected) => selected['id'] == dish.id);
+                                }
+                              });
+                            },
+                            activeColor: const Color(0xFF8A8AFF),
+                          ),
+                          title: Text(
+                            dish.name,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (dish.description != null)
+                                Text(
+                                  dish.description!,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              Text(
+                                '₹${dish.price.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF8A8AFF),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: isSelected
+                              ? Container(
+                                  width: 60,
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    ),
+                                    onChanged: (value) {
+                                      final quantity = int.tryParse(value) ?? 1;
+                                      setState(() {
+                                        final index = _selectedDishes.indexWhere((selected) => selected['id'] == dish.id);
+                                        if (index != -1) {
+                                          _selectedDishes[index]['quantity'] = quantity;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                )
+                              : null,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, _selectedDishes),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8A8AFF),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('Select (${_selectedDishes.length})'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getMealIcon() {
+    switch (widget.mealType) {
+      case 'nashta':
+        return Icons.breakfast_dining;
+      case 'lunch':
+        return Icons.lunch_dining;
+      case 'dinner':
+        return Icons.dinner_dining;
+      default:
+        return Icons.restaurant;
+    }
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+}
+

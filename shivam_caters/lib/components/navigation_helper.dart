@@ -29,9 +29,16 @@ class NavigationHelper {
     );
   }
 
+
+  static void navigateToBilling(BuildContext context) {
+    Navigator.push(
+
   static Future<dynamic> navigateToAddOrder(BuildContext context) {
 
+  
+
      OrderDao od = OrderDao(db) ;
+
     return Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddOrderScreen()),
@@ -40,6 +47,8 @@ class NavigationHelper {
 
   static Future<dynamic> navigateToBilling(BuildContext context) {
     return Navigator.push(
+
+
       context,
       MaterialPageRoute(builder: (context) => const BillingScreen()),
     );
