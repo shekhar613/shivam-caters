@@ -14,14 +14,16 @@ class MenuManagementScreen extends StatefulWidget {
 
 class _MenuManagementScreenState extends State<MenuManagementScreen> {
   String _selectedCategory = 'All';
-  final List<String> _categories = ['Appetizers',
+  final List<String> _categories = [
+    'Appetizers',
     'Main Course',
     'Breads',
     'Desserts',
     'Beverages',
     'Salads',
     'Soups',
-    'Snacks'];
+    'Snacks',
+  ];
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -36,6 +38,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
+      onPressed: _showAddMenuItemDialog,
       title: 'Menu Management',
       currentScreen: 'menu',
       child: Column(
@@ -45,9 +48,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey[50],
-              border: Border(
-                bottom: BorderSide(color: Colors.grey[300]!),
-              ),
+              border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
             ),
             child: Column(
               children: [
@@ -68,7 +69,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search by Name, Category, Price, or Description...',
+                      hintText:
+                          'Search by Name, Category, Price, or Description...',
                       prefixIcon: const Icon(
                         Icons.search,
                         color: Color(0xFF8A8AFF),
@@ -127,7 +129,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                 label: Text(
                                   category,
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : const Color(0xFF8A8AFF),
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF8A8AFF),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -141,10 +145,14 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                 checkmarkColor: Colors.white,
                                 backgroundColor: Colors.white,
                                 side: BorderSide(
-                                  color: const Color(0xFF8A8AFF).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFF8A8AFF,
+                                  ).withOpacity(0.3),
                                 ),
                                 elevation: isSelected ? 2 : 0,
-                                shadowColor: const Color(0xFF8A8AFF).withOpacity(0.3),
+                                shadowColor: const Color(
+                                  0xFF8A8AFF,
+                                ).withOpacity(0.3),
                               ),
                             );
                           }).toList(),
@@ -156,59 +164,64 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                 const SizedBox(height: 8),
                 // Results Count
                 StreamBuilder<List<Dishe>>(
-  stream: db.watchDishes(category: _selectedCategory), // already filtered
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (!snapshot.hasData) {
-      return const Center(child: Text("No data available"));
-    }
+                  stream: db.watchDishes(
+                    category: _selectedCategory,
+                  ), // already filtered
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: Text("No data available"));
+                    }
 
-    var dishes = snapshot.data!;
+                    var dishes = snapshot.data!;
 
-    // Apply search filter if needed
-    if (_searchQuery.isNotEmpty) {
-      dishes = dishes
-          .where((d) => d.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-    } return
-                Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text(
-      'Showing ${dishes.length} menu items',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey[600],
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-    if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
-      TextButton.icon(
-        onPressed: () {
-          setState(() {
-            _searchController.clear();
-            _searchQuery = '';
-            _selectedCategory = 'All';
-          });
-        },
-        icon: const Icon(Icons.clear_all, size: 16),
-        label: const Text('Clear All'),
-        style: TextButton.styleFrom(
-          foregroundColor: const Color(0xFF8A8AFF),
-        ),
-      ),
-  ],
-);
-
-                }              ),
-  
+                    // Apply search filter if needed
+                    if (_searchQuery.isNotEmpty) {
+                      dishes = dishes
+                          .where(
+                            (d) => d.name.toLowerCase().contains(
+                              _searchQuery.toLowerCase(),
+                            ),
+                          )
+                          .toList();
+                    }
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Showing ${dishes.length} menu items',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (_searchQuery.isNotEmpty ||
+                            _selectedCategory != 'All')
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                                _selectedCategory = 'All';
+                              });
+                            },
+                            icon: const Icon(Icons.clear_all, size: 16),
+                            label: const Text('Clear All'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF8A8AFF),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
-          
-          
+
           Expanded(
             child: StreamBuilder<List<Dishe>>(
               stream: db.select(db.dishes).watch(),
@@ -220,18 +233,31 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
 
                 // Apply category filter
                 if (_selectedCategory != 'All') {
-                  dishes = dishes.where((d) => d.category == _selectedCategory).toList();
+                  dishes = dishes
+                      .where((d) => d.category == _selectedCategory)
+                      .toList();
                 }
 
                 // Apply search filter
                 if (_searchQuery.isNotEmpty) {
                   dishes = dishes.where((dish) {
-                    final nameMatch = dish.name.toLowerCase().contains(_searchQuery);
-                    final categoryMatch = (dish.category ?? '').toLowerCase().contains(_searchQuery);
-                    final priceMatch = dish.price.toString().contains(_searchQuery);
-                    final descriptionMatch = (dish.portionSize ?? '').toLowerCase().contains(_searchQuery);
-                    
-                    return nameMatch || categoryMatch || priceMatch || descriptionMatch;
+                    final nameMatch = dish.name.toLowerCase().contains(
+                      _searchQuery,
+                    );
+                    final categoryMatch = (dish.category ?? '')
+                        .toLowerCase()
+                        .contains(_searchQuery);
+                    final priceMatch = dish.price.toString().contains(
+                      _searchQuery,
+                    );
+                    final descriptionMatch = (dish.portionSize ?? '')
+                        .toLowerCase()
+                        .contains(_searchQuery);
+
+                    return nameMatch ||
+                        categoryMatch ||
+                        priceMatch ||
+                        descriptionMatch;
                   }).toList();
                 }
 
@@ -372,10 +398,12 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                   'portionsize': dish.portionSize,
                                   'price': dish.price,
                                   'description': dish.description,
-                                  'available': true, // You can add availability field to database
-                                  'prepTime': dish.prepTime, // You can add prep time field to database
+                                  'available':
+                                      true, // You can add availability field to database
+                                  'prepTime': dish
+                                      .prepTime, // You can add prep time field to database
                                 };
-                                
+
                                 return DataRow(
                                   cells: [
                                     DataCell(
@@ -404,8 +432,12 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF8A8AFF).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: const Color(
+                                            0xFF8A8AFF,
+                                          ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Text(
                                           item['category'].toString(),
@@ -445,10 +477,16 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: (item['available'] as bool) 
-                                              ? const Color(0xFF4CAF50).withOpacity(0.1)
-                                              : const Color(0xFFF44336).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: (item['available'] as bool)
+                                              ? const Color(
+                                                  0xFF4CAF50,
+                                                ).withOpacity(0.1)
+                                              : const Color(
+                                                  0xFFF44336,
+                                                ).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           border: Border.all(
                                             color: dish.isAvailable
                                                 ? const Color(0xFF4CAF50)
@@ -456,9 +494,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                           ),
                                         ),
                                         child: Text(
-                                          dish.isAvailable ? 'Available' : 'Unavailable',
+                                          dish.isAvailable
+                                              ? 'Available'
+                                              : 'Unavailable',
                                           style: TextStyle(
-                                            color: dish.isAvailable 
+                                            color: dish.isAvailable
                                                 ? const Color(0xFF4CAF50)
                                                 : const Color(0xFFF44336),
                                             fontWeight: FontWeight.bold,
@@ -483,17 +523,31 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                               size: 18,
                                               color: Color(0xFF8A8AFF),
                                             ),
-                                            onPressed: () => dbf.editMenuItem(context, db, dish),
+                                            onPressed: () => dbf.editMenuItem(
+                                              context,
+                                              db,
+                                              dish,
+                                            ),
                                             tooltip: 'Edit Item',
                                           ),
                                           IconButton(
                                             icon: Icon(
-                                              dish.isAvailable? Icons.visibility_off : Icons.visibility,
+                                              dish.isAvailable
+                                                  ? Icons.visibility_off
+                                                  : Icons.visibility,
                                               size: 18,
-                                              color: dish.isAvailable ? Colors.orange : Colors.green,
+                                              color: dish.isAvailable
+                                                  ? Colors.orange
+                                                  : Colors.green,
                                             ),
-                                            onPressed: () => dbf.toggleAvailability(dish, context),
-                                            tooltip: (dish.isAvailable) ? 'Make Unavailable' : 'Make Available',
+                                            onPressed: () =>
+                                                dbf.toggleAvailability(
+                                                  dish,
+                                                  context,
+                                                ),
+                                            tooltip: (dish.isAvailable)
+                                                ? 'Make Unavailable'
+                                                : 'Make Available',
                                           ),
                                           IconButton(
                                             icon: const Icon(
@@ -501,7 +555,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                               size: 18,
                                               color: Colors.red,
                                             ),
-                                            onPressed: () => dbf.deleteMenuItem(context, db, dish),
+                                            onPressed: () => dbf.deleteMenuItem(
+                                              context,
+                                              db,
+                                              dish,
+                                            ),
                                             tooltip: 'Delete Item',
                                           ),
                                         ],
@@ -517,35 +575,24 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
               },
             ),
           ),
-
         ],
       ),
     );
   }
 
-  
-
-
-
   void _showAddMenuItemDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: SizedBox(
-          width: 600,
-          child: const Text('Add Menu Item')),
+        title: SizedBox(width: 600, child: const Text('Add Menu Item')),
         content: const AddDishScreen(),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          
         ],
       ),
     );
   }
-
-
-
 }

@@ -162,10 +162,11 @@ class _SplashScreenState extends State<SplashScreen>
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                Icons.restaurant,
-                                size: iconSize,
-                                color: const Color(0xFF000047),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                width: iconSize,
+                                height: iconSize,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),

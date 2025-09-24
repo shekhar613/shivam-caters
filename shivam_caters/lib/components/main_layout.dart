@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
+import 'status_bar.dart';
 import '../utils/responsive_helper.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
   final String title;
   final String currentScreen;
+  final VoidCallback onPressed;
+  final String? statusMessage;
+  final bool isLoading;
+  final int? totalOrders;
+  final int? pendingOrders;
+  final int? completedOrders;
 
   const MainLayout({
     super.key,
     required this.child,
     required this.title,
     required this.currentScreen,
+    required this.onPressed,
+    this.statusMessage,
+    this.isLoading = false,
+    this.totalOrders,
+    this.pendingOrders,
+    this.completedOrders,
   });
 
   @override
@@ -19,6 +32,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
+
   bool _isSidebarExpanded = true;
 
   @override
@@ -26,7 +40,7 @@ class _MainLayoutState extends State<MainLayout> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
     final isTablet = screenWidth >= 768 && screenWidth < 1024;
-    
+
     return Scaffold(
       body: Row(
         children: [
@@ -63,31 +77,51 @@ class _MainLayoutState extends State<MainLayout> {
                     children: [
                       // Menu button - Show only when sidebar is closed or on mobile
                       if (isMobile || !_isSidebarExpanded)
-                        IconButton(
-                          onPressed: () {
-                            if (isMobile) {
-                              Scaffold.of(context).openDrawer();
-                            } else {
-                              setState(() {
-                                _isSidebarExpanded = !_isSidebarExpanded;
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.menu),
-                        ),
+                        Builder(
+  builder: (context) {
+    return IconButton(
+      icon: Icon(Icons.menu),
+      onPressed: () {
+        if (isMobile) {
+          Scaffold.of(context).openDrawer();
+        } else {
+          setState(() {
+            _isSidebarExpanded = !_isSidebarExpanded;
+          });
+        }
+      },
+    );
+  },
+),
+
                       
-                      // Title
+                      // Logo and Title
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 16),
-                          child: Text(
-                            widget.title,
-                            style: TextStyle(
-                              fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000047),
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              // Logo
+                              Image.asset(
+                                'assets/logo.png',
+                                width: isMobile ? 24 : (isTablet ? 28 : 32),
+                                height: isMobile ? 24 : (isTablet ? 28 : 32),
+                                fit: BoxFit.contain,
+                              ),
+                              SizedBox(width: isMobile ? 8 : 12),
+                              // Title
+                              Expanded(
+                                child: Text(
+                                  widget.title,
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 16 : (isTablet ? 18 : 20),
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF000047),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -124,6 +158,16 @@ class _MainLayoutState extends State<MainLayout> {
                 Expanded(
                   child: widget.child,
                 ),
+                
+                // Status Bar
+                StatusBar(
+                  currentScreen: widget.currentScreen,
+                  statusMessage: widget.statusMessage,
+                  isLoading: widget.isLoading,
+                  totalOrders: widget.totalOrders,
+                  pendingOrders: widget.pendingOrders,
+                  completedOrders: widget.completedOrders,
+                ),
               ],
             ),
           ),
@@ -142,6 +186,15 @@ class _MainLayoutState extends State<MainLayout> {
               ),
             )
           : null,
+
+          
+          floatingActionButton: FloatingActionButton(
+            heroTag: "main_fab",
+            onPressed: widget.onPressed,
+            backgroundColor: Color(0xFF8A8AFF),
+            child: Icon(Icons.add),
+            ),
+        
     );
   }
 }

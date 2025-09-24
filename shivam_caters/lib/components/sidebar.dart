@@ -50,6 +50,7 @@ class Sidebar extends StatelessWidget {
             height: 60,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
+              spacing: 2,
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
@@ -62,6 +63,7 @@ class Sidebar extends StatelessWidget {
                   child: Text(
                     'Shivam Caters',
                     style: const TextStyle(
+                      
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -69,7 +71,7 @@ class Sidebar extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                SizedBox(width: 30,),
                 IconButton(
                   onPressed: onToggle,
                   icon: const Icon(

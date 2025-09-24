@@ -4,7 +4,9 @@ import 'package:shivam_caters/database/app_database.dart';
 import 'package:shivam_caters/database/dao/order_dao.dart';
 import 'package:shivam_caters/database/db_instance.dart';
 import '../utils/responsive_helper.dart';
+
 import '../utils/db_functions.dart';
+
 import 'main_layout.dart';
 
 class SmoothScrollBehavior extends ScrollBehavior {
@@ -33,7 +35,10 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   DateTime _eventDate = DateTime.now();
   DateTime _bookingDate = DateTime.now();
   OrderDao orderDao = OrderDao(db);
+
   DbFunctions dbf = DbFunctions(db);
+
+
   // Event Details Controllers
   final _eventPlaceController = TextEditingController();
   final _decorationController = TextEditingController();
@@ -90,11 +95,12 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
   final _dinnerPricePerPersonController = TextEditingController();
   double _dinnerTotal = 0.0;
   double grandTotal = 0.0;
-  
+
   // Menu selection for each meal type
   List<Map<String, dynamic>> _selectedNashtaDishes = [];
   List<Map<String, dynamic>> _selectedLunchDishes = [];
   List<Map<String, dynamic>> _selectedDinnerDishes = [];
+
   @override
   void initState() {
     super.initState();
@@ -350,6 +356,7 @@ _calculateGrandTotal();
     }
   }
 
+
   // ----------- Save Order -----------
   Future<void> _saveOrder() async {
     try {
@@ -383,7 +390,6 @@ _calculateGrandTotal();
             totalAmount: _nashtaTotal,
           ),
         );
-        
         // Insert selected nashta dishes
         for (var dish in _selectedNashtaDishes) {
           await orderDao.insertOrderDish(
@@ -395,6 +401,7 @@ _calculateGrandTotal();
             ),
           );
         }
+
       }
 
       if (_isLunchSelected) {
@@ -409,6 +416,7 @@ _calculateGrandTotal();
             totalAmount: _lunchTotal,
           ),
         );
+
         
         // Insert selected lunch dishes
         for (var dish in _selectedLunchDishes) {
@@ -421,6 +429,7 @@ _calculateGrandTotal();
             ),
           );
         }
+
       }
 
       if (_isDinnerSelected) {
@@ -435,6 +444,7 @@ _calculateGrandTotal();
             totalAmount: _dinnerTotal,
           ),
         );
+
         
         // Insert selected dinner dishes
         for (var dish in _selectedDinnerDishes) {
@@ -447,6 +457,7 @@ _calculateGrandTotal();
             ),
           );
         }
+
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2099,6 +2110,7 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
               SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
                 context,
                 mobile: 12.0,
@@ -2107,6 +2119,7 @@ _calculateGrandTotal();
               )),
               // Menu Selection Button
               _buildMenuSelectionButton(context, 'nashta', _selectedNashtaDishes),
+
             ],
           ),
         );
@@ -2356,6 +2369,7 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
               SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
                 context,
                 mobile: 12.0,
@@ -2364,6 +2378,7 @@ _calculateGrandTotal();
               )),
               // Menu Selection Button
               _buildMenuSelectionButton(context, 'lunch', _selectedLunchDishes),
+
             ],
           ),
         );
@@ -2613,6 +2628,7 @@ _calculateGrandTotal();
                   ],
                 ),
               ],
+
               SizedBox(height: ResponsiveHelper.getResponsiveSpacing(
                 context,
                 mobile: 12.0,
@@ -2673,6 +2689,14 @@ _calculateGrandTotal();
     if (text.isEmpty) return text;
     return text[0].toUpperCase() + text.substring(1);
   }
+
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildTotalDisplay(BuildContext context) {
     return Container(
@@ -2983,6 +3007,7 @@ _calculateGrandTotal();
   }
 }
 
+
 class MenuSelectionDialog extends StatefulWidget {
   final String mealType;
   final List<Map<String, dynamic>> selectedDishes;
@@ -3256,3 +3281,4 @@ class _MenuSelectionDialogState extends State<MenuSelectionDialog> {
     return text[0].toUpperCase() + text.substring(1);
   }
 }
+
